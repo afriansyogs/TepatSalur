@@ -29,16 +29,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Gagal membuat akun" }, { status: 400 });
     }
 
-    const { error: updateError } = await supabase
+    const { data: selectData, error: selectError } = await supabase
       .from("users")
-      .update({
-        phone: validated.phone,
-        role: validated.role,
-      })
-      .eq("id", data.user.id);
+      .select("id")
+      .eq("id", data.user.id)
+      .maybeSingle();
 
-    if (updateError) {
-      return NextResponse.json({ success: false, error: updateError.message }, { status: 500 });
+    if (selectError) {
+      return NextResponse.json({ success: false, error: `Gagal memeriksa profil: ${selectError.message}` }, { status: 500 });
+    }
+
+    if (!selectData) {
+      // Jika profil tidak ditemukan, coba insert langsung (kemungkinan trigger auth -> public.users tidak ada atau belum terpanggil)
+      const { error: insertError } = await supabase
+        .from("users")
+        .insert({
+          id: data.user.id,
+          name: validated.name,
+          email: validated.email,
+          phone: validated.phone,
+          role: validated.role,
+          status: "ACTIVE"
+        });
+
+      if (insertError) {
+        return NextResponse.json({
+          success: false,
+          error: `Gagal membuat profil di tabel users (RLS atau trigger issue): ${insertError.message}`
+        }, { status: 500 });
+      }
+    } else {
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          phone: validated.phone,
+          role: validated.role,
+        })
+        .eq("id", data.user.id);
+
+      if (updateError) {
+        return NextResponse.json({ success: false, error: `Gagal memperbarui profil: ${updateError.message}` }, { status: 500 });
+      }
     }
 
     return NextResponse.json({
