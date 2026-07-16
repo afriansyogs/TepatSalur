@@ -47,12 +47,32 @@ export async function GET(request: Request) {
           }
         }
         
-        if (role === "ADMIN_POSKO") {
-          next = "/dashboard/admin-posko";
+        if (role === "ADMIN_POSKO" || role === "SUPER_ADMIN") {
+          const { data: profileRow } = await supabase
+            .from("user_profiles")
+            .select("is_completed")
+            .eq("user_id", authData.user.id)
+            .single();
+
+          if (!profileRow?.is_completed) {
+            next = "/onboarding/admin";
+          } else {
+            next = "/dashboard/super-admin";
+          }
         } else if (role === "DONATUR") {
           next = "/dashboard/donatur/buat-donasi";
         } else {
-          next = "/dashboard/relawan";
+          const { data: profileRow } = await supabase
+            .from("user_profiles")
+            .select("is_completed")
+            .eq("user_id", authData.user.id)
+            .single();
+
+          if (!profileRow?.is_completed) {
+            next = "/onboarding/relawan";
+          } else {
+            next = "/dashboard/relawan";
+          }
         }
       }
 
