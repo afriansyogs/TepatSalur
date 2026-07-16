@@ -60,11 +60,19 @@ export function LoginForm() {
         show("success", "Login berhasil!", `Selamat datang kembali${user?.name ? `, ${user.name}` : ""}.`);
         setTimeout(() => {
           if (user?.role === "SUPER_ADMIN") {
-            router.push("/dashboard/super-admin");
+            if (!user.communityId) {
+              router.push("/onboarding/admin");
+            } else {
+              router.push("/dashboard/super-admin");
+            }
           } else if (user?.role === "DONATUR") {
             router.push("/dashboard/donatur/buat-donasi");
-          } else {
-            router.push("/dashboard/relawan");
+          } else if (user?.role === "RELAWAN") {
+            if (!user.communityId) {
+              router.push("/onboarding/relawan");
+            } else {
+              router.push("/dashboard/relawan");
+            }
           }
         }, 1200);
       } else {
