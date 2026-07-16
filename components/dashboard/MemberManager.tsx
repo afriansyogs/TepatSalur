@@ -5,6 +5,7 @@ import { Users, Search, Shield, Tent, Mail, Phone, Check, ArrowUpDown, Ban, More
 import { cn } from "@/lib/utils";
 import { superAdminService } from "@/services/super-admin.service";
 import { LocationType, MemberData, LocationMetadata, MemberStatus } from "@/types/super-admin";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const roleDisplay: Record<LocationType, { label: string; color: string; bgColor: string }> = {
   UNASSIGNED: { label: "Relawan", color: "text-blue-600", bgColor: "bg-blue-50 border-blue-100" },
@@ -25,53 +26,34 @@ function ActionMenu({
   onToggleStatus: (id: string, currentStatus: MemberStatus) => void;
   isProcessing: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
   return (
-    <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setOpen(!open)}
+    <Popover>
+      <PopoverTrigger
         disabled={isProcessing}
         className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors disabled:opacity-50"
       >
         {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreVertical className="w-4 h-4" />}
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-          <button
-            onClick={() => {
-              onChangeRole(member);
-              setOpen(false);
-            }}
-            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors text-left"
-          >
-            <ArrowUpDown className="w-4 h-4 text-blue-500" /> Ubah Role/Tugas
-          </button>
-          <button
-            onClick={() => {
-              onToggleStatus(member.id, member.status);
-              setOpen(false);
-            }}
-            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors text-left border-t border-slate-100"
-          >
-            <Ban className="w-4 h-4 text-slate-400" />
-            {member.status === "ACTIVE" ? "Nonaktifkan" : "Aktifkan"}
-          </button>
-        </div>
-      )}
-    </div>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-48 bg-white border border-slate-200 rounded-2xl shadow-xl p-0 overflow-hidden flex flex-col">
+        <button
+          onClick={() => {
+            onChangeRole(member);
+          }}
+          className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors text-left"
+        >
+          <ArrowUpDown className="w-4 h-4 text-blue-500" /> Ubah Role/Tugas
+        </button>
+        <button
+          onClick={() => {
+            onToggleStatus(member.id, member.status);
+          }}
+          className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors text-left border-t border-slate-100"
+        >
+          <Ban className="w-4 h-4 text-slate-400" />
+          {member.status === "ACTIVE" ? "Nonaktifkan" : "Aktifkan"}
+        </button>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -225,8 +207,9 @@ export function MemberManager() {
       </div>
 
       {/* Member Table (Desktop) */}
-      <div className="hidden md:block bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
+      <div className="hidden md:block bg-white border border-slate-200 rounded-3xl shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
               <th className="text-left px-5 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Anggota</th>
@@ -301,6 +284,7 @@ export function MemberManager() {
             })}
           </tbody>
         </table>
+      </div>
       </div>
 
       {/* Member Cards (Mobile) */}

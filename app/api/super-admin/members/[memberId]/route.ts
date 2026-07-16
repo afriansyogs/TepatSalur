@@ -68,8 +68,13 @@ export async function PATCH(
 
     const { status, assignmentType, poskoId, inventoryLocationId } = parsedBody.data;
 
+    // Buat admin client untuk membypass RLS
+    const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      : supabase;
+
     if (status) {
-      const { error: updateStatusError } = await supabase
+      const { error: updateStatusError } = await supabaseAdmin
         .from("users")
         .update({ status })
         .eq("id", memberId);
@@ -78,11 +83,6 @@ export async function PATCH(
         return NextResponse.json({ success: false, error: updateStatusError.message }, { status: 500 });
       }
     }
-
-    // Buat admin client untuk membypass RLS pada tabel relawan_assignments
-    const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
-      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
-      : supabase; // fallback jika key tidak ada, meski akan gagal RLS lagi
 
     if (assignmentType) {
       const nowString = new Date().toISOString();
