@@ -57,6 +57,8 @@ const kategoriConfig: Record<KebutuhanKategori, { label: string; color: string; 
 const allKategoriKeys = Object.keys(kategoriConfig) as KebutuhanKategori[];
 
 export function AddPoskoForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [recordingState, setRecordingState] = useState<"idle" | "recording" | "processing" | "done">("idle");
   const [duration, setDuration] = useState(0);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -233,6 +235,50 @@ export function AddPoskoForm() {
     return acc;
   }, {});
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.namaPosko.trim()) {
+      alert("Nama Posko harus diisi");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { superAdminService } = await import("@/services/super-admin.service");
+      
+      const payload = {
+        name: formData.namaPosko,
+        latitude: -6.2, // Default mock location since maps are not implemented here
+        longitude: 106.8,
+        jumlah_dewasa: demografi.dewasa,
+        jumlah_anak: demografi.anakAnak,
+        jumlah_lansia: demografi.lansia,
+        jumlah_balita: demografi.balita,
+        jumlah_ibu_hamil: demografi.ibuHamil,
+        jumlah_disabilitas: demografi.disabilitas,
+        catatan_medis_darurat: formData.catatanMedis,
+        needs: kebutuhanList.map(k => ({
+          item_name: k.nama,
+          qty_needed: k.qty
+        }))
+      };
+
+      await superAdminService.createLocation("POSKO", payload);
+      setSubmitSuccess(true);
+      
+      // Reset form
+      setFormData({ namaPosko: "", catatanMedis: "" });
+      setDemografi({ dewasa: 0, anakAnak: 0, lansia: 0, balita: 0, ibuHamil: 0, disabilitas: 0 });
+      setKebutuhanList([]);
+      
+      setTimeout(() => setSubmitSuccess(false), 5000);
+    } catch (err: any) {
+      alert("Gagal menambahkan Posko: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row h-full">
       {/* Left Sidebar: Voice Note */}
@@ -318,7 +364,14 @@ export function AddPoskoForm() {
       <div className="flex-1 p-6 lg:p-8 bg-white overflow-auto">
         <h3 className="text-xl font-bold text-slate-800 mb-6">Detail Posko Pengungsian</h3>
 
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+        {submitSuccess && (
+          <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <p className="text-sm font-bold text-emerald-800">Berhasil! Posko pengungsian baru telah ditambahkan ke sistem.</p>
+          </div>
+        )}
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Nama Posko / Lokasi</label>
             <input
@@ -504,9 +557,11 @@ export function AddPoskoForm() {
 
           <div className="pt-4 flex justify-end">
             <button
-              type="button"
-              className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-8 py-3 rounded-xl transition-all shadow-md shadow-slate-900/10"
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-slate-900 hover:bg-slate-800 disabled:opacity-70 text-white font-bold text-sm px-8 py-3 rounded-xl transition-all shadow-md flex items-center gap-2"
             >
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               Daftarkan Posko
             </button>
           </div>

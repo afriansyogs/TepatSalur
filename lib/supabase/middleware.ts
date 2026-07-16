@@ -45,7 +45,7 @@ export const updateSession = async (request: NextRequest) => {
   const isAuthRoute = pathname === "/login" || pathname === "/register";
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const isOnboardingRoute = pathname.startsWith("/onboarding");
-  const isPendingRoute = pathname.startsWith("/relawan/pending-approval");
+  const isPendingRoute = pathname.startsWith("/dashboard/relawan/pending-approval");
 
   if (!user && (isDashboardRoute || isOnboardingRoute || isPendingRoute)) {
     const url = request.nextUrl.clone();
@@ -92,8 +92,8 @@ export const updateSession = async (request: NextRequest) => {
       return redirect(ROLE_DASHBOARD[role]);
     }
 
-    if (role === "RELAWAN" && status === "PENDING" && isDashboardRoute) {
-      return redirect("/relawan/pending-approval");
+    if (role === "RELAWAN" && status === "PENDING" && isDashboardRoute && !isPendingRoute) {
+      return redirect("/dashboard/relawan/pending-approval");
     }
 
     if (role === "RELAWAN" && status === "ACTIVE" && isPendingRoute) {
