@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { patchMemberSchema } from "@/schemas/members";
 
 export async function PATCH(
@@ -78,6 +79,11 @@ export async function PATCH(
       }
     }
 
+    // Buat admin client untuk membypass RLS pada tabel relawan_assignments
+    const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY 
+      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      : supabase; // fallback jika key tidak ada, meski akan gagal RLS lagi
+
     if (assignmentType) {
       const nowString = new Date().toISOString();
 
@@ -100,7 +106,7 @@ export async function PATCH(
           );
         }
 
-        const { error: deactivateError } = await supabase
+        const { error: deactivateError } = await supabaseAdmin
           .from("relawan_assignments")
           .update({ is_active: false, deactivated_at: nowString })
           .eq("user_id", memberId)
@@ -110,7 +116,7 @@ export async function PATCH(
           return NextResponse.json({ success: false, error: deactivateError.message }, { status: 500 });
         }
 
-        const { error: insertError } = await supabase.from("relawan_assignments").insert({
+        const { error: insertError } = await supabaseAdmin.from("relawan_assignments").insert({
           user_id: memberId,
           community_id: adminCommunityId,
           assignment_type: "POSKO",
@@ -143,7 +149,7 @@ export async function PATCH(
           );
         }
 
-        const { error: deactivateError } = await supabase
+        const { error: deactivateError } = await supabaseAdmin
           .from("relawan_assignments")
           .update({ is_active: false, deactivated_at: nowString })
           .eq("user_id", memberId)
@@ -153,7 +159,7 @@ export async function PATCH(
           return NextResponse.json({ success: false, error: deactivateError.message }, { status: 500 });
         }
 
-        const { error: insertError } = await supabase.from("relawan_assignments").insert({
+        const { error: insertError } = await supabaseAdmin.from("relawan_assignments").insert({
           user_id: memberId,
           community_id: adminCommunityId,
           assignment_type: "INVENTORY",
@@ -168,7 +174,7 @@ export async function PATCH(
           return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
         }
       } else if (assignmentType === "UNASSIGNED") {
-        const { error: deactivateError } = await supabase
+        const { error: deactivateError } = await supabaseAdmin
           .from("relawan_assignments")
           .update({ is_active: false, deactivated_at: nowString })
           .eq("user_id", memberId)

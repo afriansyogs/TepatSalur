@@ -180,7 +180,8 @@ export async function POST(req: NextRequest) {
     const type = body.type;
 
     if (type === "POSKO") {
-      const parsed = createPoskoSchema.safeParse(body.payload);
+      const { needs, ...poskoData } = body.payload;
+      const parsed = createPoskoSchema.safeParse(poskoData);
       if (!parsed.success) {
         const errMsg = parsed.error.issues[0]?.message || "Validasi gagal";
         return NextResponse.json({ success: false, error: errMsg }, { status: 400 });
@@ -197,6 +198,21 @@ export async function POST(req: NextRequest) {
 
       if (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      }
+
+      if (needs && Array.isArray(needs) && needs.length > 0) {
+        const needsData = needs.map((n: any) => ({
+          posko_id: data.id,
+          item_name: n.item_name,
+          qty_needed: n.qty_needed,
+          status: "OPEN",
+          qty_fulfilled: 0
+        }));
+
+        const { error: needsError } = await supabase.from("posko_kebutuhan").insert(needsData);
+        if (needsError) {
+          console.error("Gagal menyimpan kebutuhan posko:", needsError);
+        }
       }
 
       return NextResponse.json({ success: true, data });

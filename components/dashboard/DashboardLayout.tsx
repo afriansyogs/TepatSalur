@@ -79,7 +79,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     loadUser();
   }, [router, pathname]);
 
-  const visibleMenus = allMenuItems.filter(m => m.roles.includes(currentRole));
+  const visibleMenus = user?.status === "PENDING" ? [] : allMenuItems.filter(m => m.roles.includes(currentRole));
 
   const handleLogout = async () => {
     try {
