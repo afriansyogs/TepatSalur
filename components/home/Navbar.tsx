@@ -263,6 +263,7 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           {/* DEV ONLY: akses cepat ke dashboard */}
+<<<<<<< Updated upstream
           {/* <Link
             href="/dashboard/relawan"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
@@ -270,15 +271,34 @@ export function Navbar() {
             <LayoutDashboard className="w-3.5 h-3.5" />
             Dashboard
           </Link> */}
+=======
+          {(!user || user.role !== "DONATUR") && (
+            <Link
+              href="/dashboard/relawan"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Dashboard
+            </Link>
+          )}
+>>>>>>> Stashed changes
 
           {user ? (
             <ProfileDropdown user={user} onLogout={handleLogout} />
           ) : (
             <>
-              <div className="hidden sm:block">
-                <DropdownButton label="Masuk" roles={loginRoles} variant="ghost" />
-              </div>
-              <DropdownButton label="Daftar" roles={registerRoles} variant="primary" />
+              <Link
+                href="/login"
+                className="text-sm font-semibold px-4 py-2.5 rounded-full text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                Masuk
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-semibold px-4 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
+              >
+                Daftar
+              </Link>
             </>
           )}
         </div>
