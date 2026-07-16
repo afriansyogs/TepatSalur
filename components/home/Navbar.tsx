@@ -263,13 +263,13 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           {/* DEV ONLY: akses cepat ke dashboard */}
-          {/* <Link
+          <Link
             href="/dashboard/relawan"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
             Dashboard
-          </Link> */}
+          </Link>
 
           {user ? (
             <ProfileDropdown user={user} onLogout={handleLogout} />
