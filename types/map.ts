@@ -75,6 +75,21 @@ export interface PoskoDetailRelawan {
   name: string;
 }
 
+export interface PoskoDonationHistoryItem {
+  itemName: string;
+  category: string;
+  qty: number;
+  donaturName: string;
+}
+
+export interface PoskoDonationHistory {
+  id: string;
+  status: string;
+  createdAt: string;
+  relawanName: string;
+  items: PoskoDonationHistoryItem[];
+}
+
 export interface PoskoDetailResponse {
   id: string;
   name: string;
@@ -95,6 +110,7 @@ export interface PoskoDetailResponse {
   catatanMedisDarurat: string | null;
   kebutuhan: PoskoDetailKebutuhan[];
   relawan: PoskoDetailRelawan[];
+  history?: PoskoDonationHistory[];
 }
 
 export interface InventoryDetailResponse {

@@ -687,8 +687,8 @@ export function CombinedMapView() {
                         {!isRelawan ? (
                           posko.kebutuhanKritis.length > 0 ? (
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              {posko.kebutuhanKritis.slice(0, 2).map((need) => (
-                                <span key={need} className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border",
+                              {posko.kebutuhanKritis.slice(0, 2).map((need, idx) => (
+                                <span key={`${need}-${idx}`} className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border",
                                   posko.triase.status === "KRITIS" ? "bg-rose-50 border-rose-100 text-rose-600" :
                                   posko.triase.status === "WASPADA" ? "bg-amber-50 border-amber-100 text-amber-600" :
                                   "bg-emerald-50 border-emerald-100 text-emerald-600"

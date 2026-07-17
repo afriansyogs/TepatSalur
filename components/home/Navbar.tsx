@@ -11,11 +11,6 @@ import { User } from "@/types/auth";
 
 type Role = { label: string; href: string };
 
-const loginRoles: Role[] = [
-  { label: "Relawan", href: "/login?role=relawan" },
-  { label: "Donatur", href: "/login?role=donatur" },
-];
-
 const registerRoles: Role[] = [
   { label: "Relawan", href: "/register?role=relawan" },
   { label: "Donatur", href: "/register?role=donatur" },
@@ -277,16 +272,15 @@ export function Navbar() {
             <>
               <Link
                 href="/login"
-                className="text-sm font-semibold px-4 py-2.5 rounded-full text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                className="text-sm font-semibold px-5 py-2.5 rounded-full text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
               >
                 Masuk
               </Link>
-              <Link
-                href="/register"
-                className="text-sm font-semibold px-4 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
-              >
-                Daftar
-              </Link>
+              <DropdownButton
+                label="Daftar"
+                roles={registerRoles}
+                variant="primary"
+              />
             </>
           )}
         </div>

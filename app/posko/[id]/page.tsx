@@ -80,7 +80,6 @@ interface PageProps {
 
 export default async function PoskoPage({ params }: PageProps) {
   const { id } = await params;
-  const poskoData = MOCK_POSKO[id] ?? MOCK_POSKO["1"];
 
-  return <PoskoDashboard data={poskoData} />;
+  return <PoskoDashboard poskoId={id} />;
 }
