@@ -60,6 +60,7 @@ export interface AssignedPosko {
   jumlahPengungsi: number;
   jumlahDewasa: number;
   jumlahAnak: number;
+  jumlahBalita: number;
   jumlahLansia: number;
   jumlahDisabilitas: number;
   jumlahIbuHamil: number;
@@ -68,5 +69,6 @@ export interface AssignedPosko {
   aiUrgencyScore: number | null;
   createdAt: string;
   updatedAt: string;
+  kebutuhan?: { id?: string; kategori: string; namaBarang: string; qtyNeeded: number }[];
 }
 
