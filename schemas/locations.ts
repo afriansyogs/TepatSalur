@@ -8,6 +8,7 @@ export const createPoskoSchema = z.object({
   provinsi: z.string().optional(),
   kab_kota: z.string().optional(),
   kecamatan: z.string().optional(),
+  foto_url: z.string().url("Format URL foto tidak valid").optional().or(z.literal("")),
   jumlah_pengungsi: z.number().int().optional(),
   jumlah_dewasa: z.number().int().optional(),
   jumlah_anak: z.number().int().optional(),
@@ -25,4 +26,5 @@ export const createInventorySchema = z.object({
   provinsi: z.string().optional(),
   kab_kota: z.string().optional(),
   kecamatan: z.string().optional(),
+  foto_url: z.string().url("Format URL foto tidak valid").optional().or(z.literal("")),
 });

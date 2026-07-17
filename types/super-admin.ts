@@ -115,10 +115,14 @@ export interface CreatePoskoPayload {
   latitude: number;
   longitude: number;
   alamat?: string;
+  provinsi?: string;
+  kab_kota?: string;
+  kecamatan?: string;
+  foto_url?: string;
+  jumlah_pengungsi?: number;
   jumlah_dewasa?: number;
   jumlah_anak?: number;
   jumlah_lansia?: number;
-  jumlah_balita?: number;
   jumlah_ibu_hamil?: number;
   jumlah_disabilitas?: number;
   catatan_medis_darurat?: string;

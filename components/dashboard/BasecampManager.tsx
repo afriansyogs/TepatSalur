@@ -149,6 +149,14 @@ export function BasecampManager() {
     setShowPicker(false);
   };
 
+  const mapToDbCategory = (cat: string) => {
+    const lowerCat = cat.toLowerCase();
+    if (lowerCat === "makanan" || lowerCat === "minuman") return "MAKANAN";
+    if (lowerCat === "medis") return "OBAT";
+    if (lowerCat === "perlengkapan" || lowerCat === "pakaian") return "PAKAIAN";
+    return "LAINNYA";
+  };
+
   const handleSaveBasecamp = async () => {
     if (!editingBasecampId) return;
     setIsSaving(true);
@@ -156,7 +164,7 @@ export function BasecampManager() {
       const payload = {
         needs: editingStok.map(s => ({
           item_name: s.nama,
-          category: (s.kategori || "lainnya").toUpperCase(),
+          category: mapToDbCategory(s.kategori || "lainnya"),
           qty_available: s.qty,
           satuan: s.satuan
         }))
