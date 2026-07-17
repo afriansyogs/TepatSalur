@@ -100,7 +100,9 @@ export async function GET(req: NextRequest) {
             id: n.id,
             kategori: cat,
             namaBarang: n.item_name,
-            qtyNeeded: n.qty_needed
+            qtyNeeded: n.qty_needed,
+            qtyFulfilled: n.qty_fulfilled || 0,
+            status: n.status || "OPEN"
           };
         })
       },

@@ -101,9 +101,9 @@ export function LoginForm() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="text-sm font-medium text-navy-700">Password</label>
-              <Link href="/forgot-password" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+              {/* <Link href="/forgot-password" className="text-xs font-medium text-blue-600 hover:text-blue-700">
                 Lupa password?
-              </Link>
+              </Link> */}
             </div>
             <div className="relative">
               <input
@@ -140,9 +140,7 @@ export function LoginForm() {
           <span className="text-xs text-ink-400">atau</span>
           <div className="h-px flex-1 bg-ink-200" />
         </div>
-
-        <GoogleAuthButton mode="login" />
-
+        {/* <GoogleAuthButton mode="login" requestedRole={role} /> */}
         <p className="mt-6 text-center text-sm text-ink-500">
           Belum punya akun?{" "}
           <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
