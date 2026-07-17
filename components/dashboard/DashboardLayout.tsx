@@ -30,9 +30,7 @@ const allMenuItems: MenuItem[] = [
 
   // Relawan Posko menus
   { id: "manajemen-posko",  label: "Manajemen Posko",  icon: Tent,            roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-posko" },
-  { id: "manajemen-bantuan",label: "Manajemen Bantuan", icon: Package,         roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-bantuan" },
   { id: "input-suara",     label: "Input Suara AI",    icon: Mic,             roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/input-suara" },
-  { id: "distribusi",      label: "Distribusi AI",     icon: Truck,           roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/distribusi" },
 
   // Donatur menus
   { id: "buat-donasi",      label: "Donasi Baru",       icon: MapPinPlus,      roles: ["donatur"],     section: "Donatur", href: "/dashboard/donatur/buat-donasi" },

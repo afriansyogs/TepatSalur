@@ -1,6 +1,72 @@
 import { PoskoSummary } from "@/types/posko";
+import { createClient } from "@/lib/supabase/client";
 
 export const poskoService = {
+  async getPublicPoskoList(): Promise<PoskoSummary[]> {
+    try {
+      const supabase = createClient();
+      
+      const { data, error } = await supabase
+        .from("posko")
+        .select(`
+          id,
+          name,
+          alamat,
+          kecamatan,
+          latitude,
+          longitude,
+          jumlah_pengungsi,
+          ai_status,
+          ai_urgency_score,
+          updated_at,
+          foto_url,
+          posko_kebutuhan (
+            item_name
+          ),
+          relawan_assignments (id)
+        `);
+
+      if (error || !data) {
+        console.error("Error fetching poskos:", error);
+        return [];
+      }
+
+      return data.map((p: any) => {
+        let kebutuhanKritis: string[] = [];
+        if (p.posko_kebutuhan && Array.isArray(p.posko_kebutuhan)) {
+          kebutuhanKritis = p.posko_kebutuhan.slice(0, 2).map((k: any) => k.item_name);
+        }
+
+        let relawanAktif = 0;
+        if (p.relawan_assignments && Array.isArray(p.relawan_assignments)) {
+          relawanAktif = p.relawan_assignments.length;
+        }
+
+        return {
+          id: p.id,
+          namaPosko: p.name,
+          alamat: p.alamat || "",
+          kecamatan: p.kecamatan || "",
+          triase: {
+            status: p.ai_status || "AMAN",
+            skor: p.ai_urgency_score || 0,
+            updatedAt: p.updated_at,
+          },
+          totalPengungsi: p.jumlah_pengungsi || 0,
+          kebutuhanKritis,
+          relawanAktif,
+          imageUrl: p.foto_url || "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=500&auto=format&fit=crop&q=80",
+          lat: p.latitude,
+          lng: p.longitude,
+          jenis: "bencana",
+        };
+      });
+    } catch (err) {
+      console.error("Exception fetching posko list:", err);
+      return [];
+    }
+  },
+
   async getMockPoskoList(): Promise<PoskoSummary[]> {
     // Simulasi delay jaringan
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -23,133 +89,6 @@ export const poskoService = {
         lat: -6.4807,
         lng: 106.8529,
         jenis: "bencana",
-      },
-      {
-        id: "2",
-        namaPosko: "Posko GOR Kecamatan Bojong",
-        alamat: "Jl. Raya Bojong No. 45",
-        kecamatan: "Bojong Gede, Bogor",
-        triase: {
-          status: "KRITIS",
-          skor: 79,
-          updatedAt: new Date(Date.now() - 8 * 60 * 1000).toISOString(),
-        },
-        totalPengungsi: 320,
-        kebutuhanKritis: ["Selimut", "Popok Bayi"],
-        relawanAktif: 5,
-        imageUrl: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=500&auto=format&fit=crop&q=80",
-        lat: -6.4883,
-        lng: 106.7937,
-        jenis: "bencana",
-      },
-      {
-        id: "3",
-        namaPosko: "Posko Masjid Al-Hikmah",
-        alamat: "Jl. H. Juanda No. 88",
-        kecamatan: "Depok Timur, Depok",
-        triase: {
-          status: "KRITIS",
-          skor: 72,
-          updatedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-        },
-        totalPengungsi: 95,
-        kebutuhanKritis: ["Beras"],
-        relawanAktif: 2,
-        imageUrl: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=500&auto=format&fit=crop&q=80",
-        lat: -6.3951,
-        lng: 106.8436,
-        jenis: "bencana",
-      },
-      {
-        id: "4",
-        namaPosko: "Posko Kelurahan Cimahi Tengah",
-        alamat: "Jl. Sangkuriang No. 3",
-        kecamatan: "Cimahi Tengah, Cimahi",
-        triase: {
-          status: "WASPADA",
-          skor: 54,
-          updatedAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-        },
-        totalPengungsi: 210,
-        kebutuhanKritis: ["Masker"],
-        relawanAktif: 7,
-        imageUrl: "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=500&auto=format&fit=crop&q=80",
-        lat: -6.8722,
-        lng: 107.5427,
-        jenis: "bencana",
-      },
-      {
-        id: "5",
-        namaPosko: "Posko SMPN 2 Lembang",
-        alamat: "Jl. Raya Lembang No. 77",
-        kecamatan: "Lembang, Bandung Barat",
-        triase: {
-          status: "WASPADA",
-          skor: 41,
-          updatedAt: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
-        },
-        totalPengungsi: 80,
-        kebutuhanKritis: [],
-        relawanAktif: 4,
-        imageUrl: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=500&auto=format&fit=crop&q=80",
-        lat: -6.8168,
-        lng: 107.6152,
-        jenis: "bencana",
-      },
-      {
-        id: "6",
-        namaPosko: "Posko Kantor Desa Neglasari",
-        alamat: "Jl. Neglasari No. 1",
-        kecamatan: "Neglasari, Tangerang",
-        triase: {
-          status: "AMAN",
-          skor: 22,
-          updatedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        },
-        totalPengungsi: 47,
-        kebutuhanKritis: [],
-        relawanAktif: 6,
-        imageUrl: "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=500&auto=format&fit=crop&q=80",
-        lat: -6.1601,
-        lng: 106.6341,
-        jenis: "bencana",
-      },
-      // Tambahan Basecamp Relawan
-      {
-        id: "relawan-1",
-        namaPosko: "Basecamp PMI Bandung",
-        alamat: "Jl. Aceh No. 79",
-        kecamatan: "Bandung Wetan, Bandung",
-        triase: {
-          status: "AMAN",
-          skor: 0,
-          updatedAt: new Date().toISOString(),
-        },
-        totalPengungsi: 0,
-        kebutuhanKritis: [],
-        relawanAktif: 45,
-        imageUrl: "https://images.unsplash.com/photo-1502740479091-635887520276?w=500&auto=format&fit=crop&q=80",
-        lat: -6.9115,
-        lng: 107.615,
-        jenis: "relawan",
-      },
-      {
-        id: "relawan-2",
-        namaPosko: "Hub Logistik TepatSalur",
-        alamat: "Kawasan Sentul",
-        kecamatan: "Babakan Madang, Bogor",
-        triase: {
-          status: "AMAN",
-          skor: 0,
-          updatedAt: new Date().toISOString(),
-        },
-        totalPengungsi: 0,
-        kebutuhanKritis: [],
-        relawanAktif: 28,
-        imageUrl: "https://images.unsplash.com/photo-1502740479091-635887520276?w=500&auto=format&fit=crop&q=80",
-        lat: -6.5684,
-        lng: 106.8837,
-        jenis: "relawan",
       }
     ];
   }

@@ -60,6 +60,7 @@ export function VoiceInputForm() {
       jumlahPengungsi: 0,
       jumlahDewasa: 0,
       jumlahAnak: 0,
+      jumlahBalita: 0,
       jumlahLansia: 0,
       jumlahDisabilitas: 0,
       jumlahIbuHamil: 0,
@@ -68,7 +69,7 @@ export function VoiceInputForm() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: "kebutuhan",
   });
@@ -83,13 +84,15 @@ export function VoiceInputForm() {
       setPosko(assigned);
       if (assigned) {
         setValue("poskoId", assigned.id);
-        setValue("jumlahPengungsi", assigned.jumlahPengungsi);
-        setValue("jumlahDewasa", assigned.jumlahDewasa);
-        setValue("jumlahAnak", assigned.jumlahAnak);
-        setValue("jumlahLansia", assigned.jumlahLansia);
-        setValue("jumlahDisabilitas", assigned.jumlahDisabilitas);
-        setValue("jumlahIbuHamil", assigned.jumlahIbuHamil);
+        setValue("jumlahPengungsi", assigned.jumlahPengungsi || 0);
+        setValue("jumlahDewasa", assigned.jumlahDewasa || 0);
+        setValue("jumlahAnak", assigned.jumlahAnak || 0);
+        setValue("jumlahBalita", assigned.jumlahBalita || 0);
+        setValue("jumlahLansia", assigned.jumlahLansia || 0);
+        setValue("jumlahDisabilitas", assigned.jumlahDisabilitas || 0);
+        setValue("jumlahIbuHamil", assigned.jumlahIbuHamil || 0);
         setValue("catatanMedisDarurat", assigned.catatanMedisDarurat ?? "");
+        // Do not prepopulate kebutuhan so we don't duplicate on save
       }
       setIsLoadingPosko(false);
     }
@@ -182,10 +185,11 @@ export function VoiceInputForm() {
     setValue("jumlahIbuHamil", data.jumlahIbuHamil);
     setValue("catatanMedisDarurat", data.catatanMedisDarurat);
 
-    while (fields.length > 0) remove(0);
-    data.kebutuhan.forEach((item) => {
-      append({ kategori: item.kategori, namaBarang: item.namaBarang, qtyNeeded: item.qtyNeeded });
-    });
+    replace(data.kebutuhan.map((item) => ({
+      kategori: item.kategori,
+      namaBarang: item.namaBarang,
+      qtyNeeded: item.qtyNeeded
+    })));
   };
 
   const resetForm = () => {
@@ -197,13 +201,14 @@ export function VoiceInputForm() {
       reset({
         poskoId: posko.id,
         jumlahPengungsi: posko.jumlahPengungsi,
-        jumlahDewasa: posko.jumlahDewasa,
-        jumlahAnak: posko.jumlahAnak,
-        jumlahLansia: posko.jumlahLansia,
+        jumlahDewasa: posko.jumlahDewasa || 0,
+        jumlahAnak: posko.jumlahAnak || 0,
+        jumlahBalita: posko.jumlahBalita || 0,
+        jumlahLansia: posko.jumlahLansia || 0,
         jumlahDisabilitas: posko.jumlahDisabilitas,
-        jumlahIbuHamil: posko.jumlahIbuHamil,
+        jumlahIbuHamil: posko.jumlahIbuHamil || 0,
         catatanMedisDarurat: posko.catatanMedisDarurat ?? "",
-        kebutuhan: [],
+        kebutuhan: [], // Voice input only appends, keep empty on reset
       });
     }
   };
@@ -427,6 +432,16 @@ export function VoiceInputForm() {
                 className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-lg font-black text-slate-800 shadow-sm outline-none transition-colors"
               />
               {errors.jumlahLansia && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.jumlahLansia.message}</p>}
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <label className="block text-xs font-bold text-slate-500 mb-2">Balita</label>
+              <input
+                type="number"
+                {...register("jumlahBalita", { valueAsNumber: true })}
+                className="w-full bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 text-lg font-black text-slate-800 shadow-sm outline-none transition-colors"
+              />
+              {errors.jumlahBalita && <p className="text-[10px] text-red-500 mt-1 font-semibold">{errors.jumlahBalita.message}</p>}
             </div>
 
             <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
