@@ -179,9 +179,9 @@ export async function PATCH(
 ) {
   try {
     const { type, id } = await params;
-    
-    if (type !== "inventory") {
-      return NextResponse.json({ success: false, error: "Tipe lokasi belum didukung untuk update ini" }, { status: 400 });
+
+    if (type !== "inventory" && type !== "posko") {
+      return NextResponse.json({ success: false, error: "Tipe lokasi tidak valid" }, { status: 400 });
     }
 
     const supabase = await createClient();
@@ -194,29 +194,177 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: adminRow, error: adminError } = await supabase
+    const { data: userRow, error: userError } = await supabase
       .from("users")
       .select("role, community_id")
       .eq("id", user.id)
       .single();
 
-    if (adminError || !adminRow || adminRow.role !== "SUPER_ADMIN") {
+    if (userError || !userRow) {
       return NextResponse.json({ success: false, error: "Akses ditolak" }, { status: 403 });
     }
 
-    const adminCommunityId = adminRow.community_id;
-    if (!adminCommunityId) {
-      return NextResponse.json(
-        { success: false, error: "Super Admin tidak memiliki komunitas yang valid" },
-        { status: 403 }
-      );
+    const userCommunityId = userRow.community_id;
+
+    if (type === "posko") {
+      // Authorization check for Posko
+      let isAuthorized = false;
+      if (userRow.role === "SUPER_ADMIN") {
+        if (!userCommunityId) {
+          return NextResponse.json({ success: false, error: "Super Admin tidak memiliki komunitas" }, { status: 403 });
+        }
+        const { data: poskoCheck } = await supabase
+          .from("posko")
+          .select("id")
+          .eq("id", id)
+          .eq("community_id", userCommunityId)
+          .single();
+        if (poskoCheck) isAuthorized = true;
+      } else if (userRow.role === "RELAWAN") {
+        const { data: assignmentCheck } = await supabase
+          .from("relawan_assignments")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("posko_id", id)
+          .eq("is_active", true)
+          .eq("assignment_type", "POSKO")
+          .single();
+        if (assignmentCheck) isAuthorized = true;
+      }
+
+      if (!isAuthorized) {
+        return NextResponse.json({ success: false, error: "Akses ditolak atau posko tidak ditemukan" }, { status: 403 });
+      }
+
+      const body = await req.json();
+      const { demografi, kebutuhan } = body;
+
+      if (demografi) {
+        let aiUrgencyScore = 0;
+        let aiStatus = "HIJAU";
+
+        const lansia = demografi.lansia || 0;
+        const anak = demografi.anakAnak || demografi.anak || 0;
+        const balita = demografi.balita || 0;
+        const ibuHamil = demografi.ibuHamil || 0;
+        const disabilitas = demografi.disabilitas || 0;
+
+        if (lansia + anak + balita + ibuHamil + disabilitas > 0) {
+          aiUrgencyScore += 30;
+          aiStatus = "KUNING";
+        }
+
+        const catatan = demografi.catatanMedis || demografi.catatanMedisDarurat || "";
+        if (catatan.length > 5) {
+          aiUrgencyScore += 40;
+          aiStatus = "MERAH";
+        }
+
+        const { error: updateError } = await supabase
+          .from("posko")
+          .update({
+            jumlah_pengungsi: (demografi.dewasa || 0) + (demografi.anakAnak || 0) + (demografi.lansia || 0) + (demografi.balita || 0),
+            jumlah_dewasa: demografi.dewasa || 0,
+            jumlah_anak: (demografi.anakAnak || 0) + (demografi.balita || 0),
+            jumlah_lansia: demografi.lansia || 0,
+            jumlah_disabilitas: demografi.disabilitas || 0,
+            jumlah_ibu_hamil: demografi.ibuHamil || 0,
+            catatan_medis_darurat: catatan,
+            ai_status: aiStatus,
+            ai_urgency_score: aiUrgencyScore,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", id);
+
+        if (updateError) {
+          return NextResponse.json({ success: false, error: updateError.message }, { status: 500 });
+        }
+      }
+
+      if (kebutuhan && Array.isArray(kebutuhan)) {
+        const newItems = [];
+        const updateItems = [];
+
+        const mapCategory = (cat: string) => {
+          const c = (cat || "").toLowerCase();
+          if (c === "makanan" || c === "minuman") return "MAKANAN";
+          if (c === "medis" || c === "obat") return "OBAT";
+          if (c === "pakaian") return "PAKAIAN";
+          return "LAINNYA";
+        };
+
+        for (const item of kebutuhan) {
+          const itemName = item.nama || item.itemName || item.item_name;
+          const category = mapCategory(item.kategori || item.category || item.category_kebutuhan);
+          const qty = Number(item.qty ?? item.qtyNeeded ?? item.qty_needed) || 0;
+
+          if (item.id && item.id.length > 20 && !item.id.startsWith("k-")) {
+            updateItems.push({
+              id: item.id,
+              posko_id: id,
+              item_name: itemName,
+              category_kebutuhan: category,
+              qty_needed: qty,
+              status: item.status || "OPEN"
+            });
+          } else {
+            newItems.push({
+              posko_id: id,
+              item_name: itemName,
+              category_kebutuhan: category,
+              qty_needed: qty,
+              status: "OPEN"
+            });
+          }
+        }
+
+        if (updateItems.length > 0) {
+          const { error: upsertError } = await supabase
+            .from("posko_kebutuhan")
+            .upsert(updateItems, { onConflict: "id" });
+          if (upsertError) {
+            return NextResponse.json({ success: false, error: upsertError.message }, { status: 500 });
+          }
+        }
+
+        if (newItems.length > 0) {
+          const { error: insertError } = await supabase
+            .from("posko_kebutuhan")
+            .insert(newItems);
+          if (insertError) {
+            return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
+          }
+        }
+
+        const incomingIds = updateItems.map(u => u.id);
+
+        const { data: existingOpens } = await supabase
+          .from("posko_kebutuhan")
+          .select("id")
+          .eq("posko_id", id)
+          .eq("status", "OPEN");
+
+        if (existingOpens) {
+          const toDelete = existingOpens.filter(ex => !incomingIds.includes(ex.id)).map(ex => ex.id);
+          if (toDelete.length > 0) {
+            await supabase.from("posko_kebutuhan").delete().in("id", toDelete);
+          }
+        }
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    // Inventory Type Update
+    if (userRow.role !== "SUPER_ADMIN" || !userCommunityId) {
+      return NextResponse.json({ success: false, error: "Akses ditolak" }, { status: 403 });
     }
 
     const { data: inventoryData, error: inventoryError } = await supabase
       .from("inventory_locations")
       .select("id")
       .eq("id", id)
-      .eq("community_id", adminCommunityId)
+      .eq("community_id", userCommunityId)
       .single();
 
     if (inventoryError || !inventoryData) {

@@ -142,11 +142,11 @@ export function AddPoskoForm() {
 
       await superAdminService.createLocation(activeTab === "posko" ? "POSKO" : "INVENTORY", payload);
       
-      show({
-        title: "Berhasil!",
-        description: `${activeTab === "posko" ? "Posko pengungsian" : "Basecamp"} baru telah ditambahkan ke sistem.`,
-        variant: "success",
-      });
+      show(
+        "success",
+        "Berhasil!",
+        `${activeTab === "posko" ? "Posko pengungsian" : "Basecamp"} baru telah ditambahkan ke sistem.`
+      );
       
       // Reset form
       setLocationData({
@@ -341,7 +341,7 @@ export function AddPoskoForm() {
 
   return (
     <div className="flex flex-col lg:flex-row h-full w-full justify-center">
-      <ToastContainer toasts={toasts} dismiss={dismiss} />
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
       {/* Content: Manual Form */}
       <div className={cn("w-full max-w-4xl p-6 lg:p-8 bg-white overflow-auto mx-auto")}>
         

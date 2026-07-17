@@ -27,6 +27,51 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ success: false, error: "Posko tidak ditemukan" }, { status: 404 });
     }
 
+    const { data: distData } = await supabase
+      .from("distribusi")
+      .select(`
+        id,
+        status,
+        created_at,
+        users!relawan_id ( name ),
+        distribusi_items (
+          qty_allocated,
+          inventory_items!inventory_item_id (
+            item_name,
+            category,
+            donasi!source_donasi_id (
+              users!donatur_id ( name )
+            )
+          )
+        )
+      `)
+      .eq("posko_id", id)
+      .order("created_at", { ascending: false });
+
+    const history = (distData ?? []).map((d: any) => {
+      const relawanName = (Array.isArray(d.users) ? d.users[0]?.name : d.users?.name) ?? "Relawan";
+      const items = (d.distribusi_items ?? []).map((di: any) => {
+        const item = Array.isArray(di.inventory_items) ? di.inventory_items[0] : di.inventory_items;
+        const donasi = Array.isArray(item?.donasi) ? item?.donasi[0] : item?.donasi;
+        const user = Array.isArray(donasi?.users) ? donasi?.users[0] : donasi?.users;
+        const donaturName = user?.name ?? "Donatur Umum";
+        return {
+          itemName: item?.item_name ?? "Barang Bantuan",
+          category: item?.category ?? "LAINNYA",
+          qty: di.qty_allocated ?? 0,
+          donaturName,
+        };
+      });
+
+      return {
+        id: d.id,
+        status: d.status,
+        createdAt: d.created_at,
+        relawanName,
+        items,
+      };
+    });
+
     const response: PoskoDetailResponse = {
       id: data.id,
       name: data.name,
@@ -56,7 +101,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       })),
       relawan: ((data.relawan_assignments as any[]) ?? [])
         .filter((r) => r.is_active && r.status === "APPROVED")
-        .map((r) => ({ name: r.users?.name ?? "Unknown" })),
+        .map((r) => ({ name: (Array.isArray(r.users) ? r.users[0]?.name : r.users?.name) ?? "Unknown" })),
+      history,
     };
 
     return NextResponse.json({ success: true, data: response });
