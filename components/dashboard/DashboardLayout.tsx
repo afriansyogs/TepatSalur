@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Home } from "lucide-react";
 
+import { createClient } from "@/lib/supabase/client";
+
 type MenuItem = {
   id: string;
   label: string;
@@ -29,8 +31,12 @@ const allMenuItems: MenuItem[] = [
   { id: "manage-member",    label: "Manage Member",     icon: UserPlus,        roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-member" },
 
   // Relawan Posko menus
-  { id: "manajemen-posko",  label: "Manajemen Posko",  icon: Tent,            roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-posko" },
-  { id: "input-suara",     label: "Input Suara AI",    icon: Mic,             roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/input-suara" },
+  { id: "manajemen-posko",  label: "Manajemen Posko",  icon: Tent,            roles: ["relawan_posko"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-posko" },
+  { id: "input-suara",     label: "Input Suara AI",    icon: Mic,             roles: ["relawan_posko"],     section: "Relawan Posko", href: "/dashboard/relawan/input-suara" },
+
+  // Relawan Inventory menus
+  { id: "manajemen-inventory",  label: "Manajemen Inventory",  icon: Package,            roles: ["relawan_inventory"],     section: "Relawan Inventory", href: "/dashboard/relawan/manajemen-bantuan" },
+  { id: "manajemen-distribusi", label: "Manajemen Distribusi", icon: Truck,              roles: ["relawan_inventory"],     section: "Relawan Inventory", href: "/dashboard/relawan/distribusi" },
 
   // Donatur menus
   { id: "buat-donasi",      label: "Donasi Baru",       icon: MapPinPlus,      roles: ["donatur"],     section: "Donatur", href: "/dashboard/donatur/buat-donasi" },
@@ -39,8 +45,10 @@ const allMenuItems: MenuItem[] = [
 
 const roleConfig: Record<string, { label: string; color: string; defaultPath: string }> = {
   super_admin: { label: "Super Admin", color: "text-amber-400", defaultPath: "/dashboard/super-admin/manage-basecamp" },
-  relawan:     { label: "Relawan",     color: "text-blue-400",  defaultPath: "/dashboard/relawan/manajemen-posko" },
-  donatur:     { label: "Donatur",     color: "text-emerald-400", defaultPath: "/dashboard/donatur/buat-donasi" },
+  relawan_posko: { label: "Relawan Posko", color: "text-blue-400", defaultPath: "/dashboard/relawan/manajemen-posko" },
+  relawan_inventory: { label: "Relawan Inventory", color: "text-indigo-400", defaultPath: "/dashboard/relawan/manajemen-bantuan" },
+  relawan: { label: "Relawan", color: "text-slate-400", defaultPath: "/dashboard" }, // Fallback
+  donatur: { label: "Donatur", color: "text-emerald-400", defaultPath: "/dashboard/donatur/buat-donasi" },
 };
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -62,11 +70,27 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         }
         setUser(currentUser);
         const mappedRole = currentUser.role.toLowerCase();
-        setCurrentRole(mappedRole);
+        let finalRole = mappedRole;
+
+        if (mappedRole === "relawan") {
+          const supabase = createClient();
+          const { data: assignment } = await supabase
+            .from("relawan_assignments")
+            .select("assignment_type")
+            .eq("user_id", currentUser.id)
+            .eq("is_active", true)
+            .single();
+            
+          if (assignment) {
+            finalRole = assignment.assignment_type === "POSKO" ? "relawan_posko" : "relawan_inventory";
+          }
+        }
+
+        setCurrentRole(finalRole);
         
         // Redirect if on root dashboard or default role route
         if (pathname === "/dashboard" || pathname === `/dashboard/${mappedRole}`) {
-           router.push(roleConfig[mappedRole]?.defaultPath || "/");
+           router.push(roleConfig[finalRole]?.defaultPath || "/");
         }
       } catch (err) {
         console.error("Dashboard auth error:", err);

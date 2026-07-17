@@ -77,27 +77,28 @@ export function VoiceInputForm() {
   const watchedKebutuhan = watch("kebutuhan");
   const totalPengungsi = watch("jumlahPengungsi") || 0;
 
-  useEffect(() => {
-    async function loadPosko() {
-      setIsLoadingPosko(true);
-      const assigned = await relawanService.getAssignedPosko();
-      setPosko(assigned);
-      if (assigned) {
-        setValue("poskoId", assigned.id);
-        setValue("jumlahPengungsi", assigned.jumlahPengungsi || 0);
-        setValue("jumlahDewasa", assigned.jumlahDewasa || 0);
-        setValue("jumlahAnak", assigned.jumlahAnak || 0);
-        setValue("jumlahBalita", assigned.jumlahBalita || 0);
-        setValue("jumlahLansia", assigned.jumlahLansia || 0);
-        setValue("jumlahDisabilitas", assigned.jumlahDisabilitas || 0);
-        setValue("jumlahIbuHamil", assigned.jumlahIbuHamil || 0);
-        setValue("catatanMedisDarurat", assigned.catatanMedisDarurat ?? "");
-        // Do not prepopulate kebutuhan so we don't duplicate on save
-      }
-      setIsLoadingPosko(false);
+  const loadPosko = useCallback(async () => {
+    setIsLoadingPosko(true);
+    const assigned = await relawanService.getAssignedPosko();
+    setPosko(assigned);
+    if (assigned) {
+      setValue("poskoId", assigned.id);
+      setValue("jumlahPengungsi", assigned.jumlahPengungsi || 0);
+      setValue("jumlahDewasa", assigned.jumlahDewasa || 0);
+      setValue("jumlahAnak", assigned.jumlahAnak || 0);
+      setValue("jumlahBalita", assigned.jumlahBalita || 0);
+      setValue("jumlahLansia", assigned.jumlahLansia || 0);
+      setValue("jumlahDisabilitas", assigned.jumlahDisabilitas || 0);
+      setValue("jumlahIbuHamil", assigned.jumlahIbuHamil || 0);
+      setValue("catatanMedisDarurat", assigned.catatanMedisDarurat ?? "");
+      // Do not prepopulate kebutuhan so we don't duplicate on save
     }
-    loadPosko();
+    setIsLoadingPosko(false);
   }, [setValue]);
+
+  useEffect(() => {
+    loadPosko();
+  }, [loadPosko]);
 
   const cleanupRecording = useCallback(() => {
     if (timerRef.current) {
@@ -223,18 +224,11 @@ export function VoiceInputForm() {
 
     if (result.success) {
       setSaveStatus("saved");
+      await loadPosko();
+      
       if (result.aiStatus && result.aiUrgencyScore !== undefined) {
         setTriageResult({ status: result.aiStatus, score: result.aiUrgencyScore });
         setIsTriageOpen(true);
-        setPosko((prev) =>
-          prev
-            ? {
-                ...prev,
-                aiStatus: result.aiStatus ?? null,
-                aiUrgencyScore: result.aiUrgencyScore ?? null,
-              }
-            : null
-        );
       }
     } else {
       setSaveStatus("error");
@@ -323,7 +317,7 @@ export function VoiceInputForm() {
           {recordingState === "done" && (
             <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 mt-4">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-sm font-bold text-emerald-700">AI berhasil mengisi form</span>
+              <span className="text-sm font-bold text-emerald-700">AI berhasil</span>
             </div>
           )}
         </div>
@@ -555,13 +549,13 @@ export function VoiceInputForm() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          <button
+          {/* <button
             type="button"
             onClick={resetForm}
             className="px-5 py-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl text-sm font-bold text-slate-600 flex items-center gap-2 transition-colors"
           >
             <RefreshCw className="w-4 h-4" /> Reset
-          </button>
+          </button> */}
 
           <button
             type="submit"

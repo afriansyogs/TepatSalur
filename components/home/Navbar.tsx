@@ -106,7 +106,7 @@ function ProfileDropdown({
   const role = user.role.toUpperCase();
   const isDonatur = role === "DONATUR";
   const dashboardHref = ROLE_DASHBOARD[role] ?? "/dashboard/relawan";
-  const dashboardLabel = isDonatur ? "Halaman Donasi" : "Dashboard Bantuan";
+  const dashboardLabel = isDonatur ? "Halaman Donasi" : "Dashboard";
   const DashboardIcon = isDonatur ? Heart : LayoutDashboard;
 
   const roleLabel: Record<string, string> = {
@@ -257,7 +257,6 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* DEV ONLY: akses cepat ke dashboard */}
           {/* <Link
             href="/dashboard/relawan"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
