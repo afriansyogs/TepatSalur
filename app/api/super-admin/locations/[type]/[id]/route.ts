@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { updateInventoryStockSchema } from "@/schemas/inventory";
 
 export async function GET(
   req: NextRequest,
@@ -64,16 +66,14 @@ export async function GET(
         return NextResponse.json({ success: false, error: "Posko tidak ditemukan" }, { status: 404 });
       }
 
-      // Filter active assignments only for displaying the current volunteers
       const activeAssignments = poskoData.relawan_assignments
         ? (Array.isArray(poskoData.relawan_assignments)
             ? poskoData.relawan_assignments
             : [poskoData.relawan_assignments]
-          ).filter((a: any) => a.is_active === true)
+          ).filter((a: { is_active: boolean }) => a.is_active === true)
         : [];
 
-      // Map users
-      const assignedVolunteers = activeAssignments.map((a: any) => {
+      const assignedVolunteers = activeAssignments.map((a: { users: { name?: string } | { name?: string }[] }) => {
         const u = Array.isArray(a.users) ? a.users[0] : a.users;
         return {
           name: u?.name,
@@ -131,16 +131,14 @@ export async function GET(
         return NextResponse.json({ success: false, error: "Gudang tidak ditemukan" }, { status: 404 });
       }
 
-      // Filter active assignments
       const activeAssignments = inventoryData.relawan_assignments
         ? (Array.isArray(inventoryData.relawan_assignments)
             ? inventoryData.relawan_assignments
             : [inventoryData.relawan_assignments]
-          ).filter((a: any) => a.is_active === true)
+          ).filter((a: { is_active: boolean }) => a.is_active === true)
         : [];
 
-      // Map users
-      const assignedVolunteers = activeAssignments.map((a: any) => {
+      const assignedVolunteers = activeAssignments.map((a: { id: string; assigned_at: string; users: { id?: string; name?: string; email?: string; phone?: string } | { id?: string; name?: string; email?: string; phone?: string }[] }) => {
         const u = Array.isArray(a.users) ? a.users[0] : a.users;
         return {
           assignmentId: a.id,
@@ -214,7 +212,6 @@ export async function PATCH(
       );
     }
 
-    // Pastikan gudang tersebut milik komunitas admin
     const { data: inventoryData, error: inventoryError } = await supabase
       .from("inventory_locations")
       .select("id")
@@ -227,47 +224,104 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const needs = body.needs || [];
-
-    // Hapus items lama
-    const { error: deleteError } = await supabase
-      .from("inventory_items")
-      .delete()
-      .eq("inventory_location_id", id);
-      
-    if (deleteError) {
-      return NextResponse.json({ success: false, error: deleteError.message }, { status: 500 });
+    const parsed = updateInventoryStockSchema.safeParse(body);
+    if (!parsed.success) {
+      const errMsg = parsed.error.issues[0]?.message || "Validasi gagal";
+      return NextResponse.json({ success: false, error: errMsg }, { status: 400 });
     }
 
-    // Insert items baru
-    if (needs.length > 0) {
-      const insertData = needs.map((item: any) => ({
-        inventory_location_id: id,
-        item_name: item.item_name,
-        category: item.category,
-        qty_available: item.qty_available,
-        unit: item.satuan || "Pcs" // we use the field directly in DB if unit is required, but API returns it inside needs? The DB might not have 'satuan'. Wait, DB `inventory_items` might not have `satuan`.
-        // Let's check if `unit` or `satuan` exists, else just append it to name or omit.
-        // TepatSalur usually has `unit` or `satuan`. I will map it to `item_name` with parentheses if the column doesn't exist, but wait, let's just assume `satuan` exists, or check. I will omit `unit` if it throws error, but since I can't catch the inner error easily... Let's just insert what we know: item_name, category, qty_available. Wait, I'll pass unit anyway, supabase will ignore or error. I'll just stringify `satuan` to the `item_name` maybe? No, let's just insert standard.
-      }));
+    const { needs } = parsed.data;
 
-      // Let's sanitize insertData just in case. 
-      // Actually `qty_available` is integer.
-      const sanitizedInsertData = needs.map((item: any) => {
-          return {
-             inventory_location_id: id,
-             item_name: item.item_name,
-             category: item.category,
-             qty_available: item.qty_available
-          };
-      });
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json(
+        { success: false, error: "Konfigurasi server tidak lengkap (SUPABASE_SERVICE_ROLE_KEY)" },
+        { status: 500 }
+      );
+    }
 
-      const { error: insertError } = await supabase
+    const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    const { data: existingItems, error: fetchError } = await supabaseAdmin
+      .from("inventory_items")
+      .select("id, item_name, category, qty_available, qty_booked")
+      .eq("inventory_location_id", id);
+
+    if (fetchError) {
+      return NextResponse.json({ success: false, error: fetchError.message }, { status: 500 });
+    }
+
+    const existingMap = new Map((existingItems ?? []).map((item) => [item.id, item]));
+    const keptIds = new Set<string>();
+
+    for (const item of needs) {
+      if (item.id && existingMap.has(item.id)) {
+        const existing = existingMap.get(item.id)!;
+        if (item.qty_available < existing.qty_booked) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Stok "${item.item_name}" tidak boleh kurang dari jumlah yang sedang dibooking (${existing.qty_booked})`,
+            },
+            { status: 400 }
+          );
+        }
+
+        const { error: updateError } = await supabaseAdmin
+          .from("inventory_items")
+          .update({
+            item_name: item.item_name,
+            category: item.category,
+            qty_available: item.qty_available,
+          })
+          .eq("id", item.id)
+          .eq("inventory_location_id", id);
+
+        if (updateError) {
+          return NextResponse.json({ success: false, error: updateError.message }, { status: 500 });
+        }
+
+        keptIds.add(item.id);
+      } else {
+        const { error: insertError } = await supabaseAdmin
+          .from("inventory_items")
+          .insert({
+            inventory_location_id: id,
+            item_name: item.item_name,
+            category: item.category,
+            qty_available: item.qty_available,
+            qty_booked: 0,
+          });
+
+        if (insertError) {
+          return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
+        }
+      }
+    }
+
+    for (const existing of existingItems ?? []) {
+      if (keptIds.has(existing.id)) continue;
+
+      if (existing.qty_booked > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Item "${existing.item_name}" tidak bisa dihapus karena sedang dalam proses distribusi`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const { error: deleteError } = await supabaseAdmin
         .from("inventory_items")
-        .insert(sanitizedInsertData);
-        
-      if (insertError) {
-        return NextResponse.json({ success: false, error: insertError.message }, { status: 500 });
+        .delete()
+        .eq("id", existing.id)
+        .eq("inventory_location_id", id);
+
+      if (deleteError) {
+        return NextResponse.json({ success: false, error: deleteError.message }, { status: 500 });
       }
     }
 
@@ -277,4 +331,3 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
-

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Warehouse, MapPinPlus, Plus, Edit3, Package, Trash2, Search, X, ArrowLeft, Save, ChevronDown, Loader2 } from "lucide-react";
+import { Warehouse, MapPinPlus, Plus, Edit3, Package, Trash2, Search, ArrowLeft, Save, ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { superAdminService } from "@/services/super-admin.service";
-import { PoskoLocationData, InventoryLocationData } from "@/types/super-admin";
+import { PoskoLocationData, InventoryLocationData, InventoryItem } from "@/types/super-admin";
 
-type StokKategori = "makanan" | "minuman" | "medis" | "sanitasi" | "perlengkapan" | "lainnya" | string;
+type StokKategori = "MAKANAN" | "PAKAIAN" | "OBAT" | "LAINNYA";
 
 type StokItem = {
   id: string;
@@ -16,9 +16,9 @@ type StokItem = {
   satuan: string;
 };
 
-const kategoriConfig: Record<string, { label: string; color: string; bgColor: string; items: { nama: string; satuan: string }[] }> = {
-  makanan: {
-    label: "Makanan",
+const kategoriConfig: Record<StokKategori, { label: string; color: string; bgColor: string; items: { nama: string; satuan: string }[] }> = {
+  MAKANAN: {
+    label: "Makanan & Minuman",
     color: "text-amber-700",
     bgColor: "bg-amber-50 border-amber-200",
     items: [
@@ -28,19 +28,25 @@ const kategoriConfig: Record<string, { label: string; color: string; bgColor: st
       { nama: "Makanan Kaleng", satuan: "Dus" },
       { nama: "Makanan Bayi", satuan: "Dus" },
       { nama: "Susu Formula", satuan: "Karton" },
-    ],
-  },
-  minuman: {
-    label: "Minuman",
-    color: "text-blue-700",
-    bgColor: "bg-blue-50 border-blue-200",
-    items: [
       { nama: "Air Mineral", satuan: "Dus" },
       { nama: "Oralit", satuan: "Box" },
       { nama: "Susu UHT", satuan: "Karton" },
     ],
   },
-  medis: {
+  PAKAIAN: {
+    label: "Pakaian & Perlengkapan",
+    color: "text-indigo-700",
+    bgColor: "bg-indigo-50 border-indigo-200",
+    items: [
+      { nama: "Selimut", satuan: "Pcs" },
+      { nama: "Tikar / Matras", satuan: "Pcs" },
+      { nama: "Terpal", satuan: "Lembar" },
+      { nama: "Pakaian Layak Pakai", satuan: "Stel" },
+      { nama: "Genset", satuan: "Unit" },
+      { nama: "Lampu Emergency", satuan: "Pcs" },
+    ],
+  },
+  OBAT: {
     label: "Kebutuhan Medis",
     color: "text-rose-700",
     bgColor: "bg-rose-50 border-rose-200",
@@ -56,10 +62,10 @@ const kategoriConfig: Record<string, { label: string; color: string; bgColor: st
       { nama: "Antiseptik", satuan: "Botol" },
     ],
   },
-  sanitasi: {
-    label: "Sanitasi & Kebersihan",
-    color: "text-teal-700",
-    bgColor: "bg-teal-50 border-teal-200",
+  LAINNYA: {
+    label: "Sanitasi & Lainnya",
+    color: "text-slate-700",
+    bgColor: "bg-slate-100 border-slate-200",
     items: [
       { nama: "Sabun Mandi", satuan: "Pcs" },
       { nama: "Sabun Cuci", satuan: "Pcs" },
@@ -70,45 +76,45 @@ const kategoriConfig: Record<string, { label: string; color: string; bgColor: st
       { nama: "Tisu Basah", satuan: "Pack" },
     ],
   },
-  perlengkapan: {
-    label: "Perlengkapan",
-    color: "text-indigo-700",
-    bgColor: "bg-indigo-50 border-indigo-200",
-    items: [
-      { nama: "Selimut", satuan: "Pcs" },
-      { nama: "Tikar / Matras", satuan: "Pcs" },
-      { nama: "Terpal", satuan: "Lembar" },
-      { nama: "Pakaian Layak Pakai", satuan: "Stel" },
-      { nama: "Genset", satuan: "Unit" },
-      { nama: "Lampu Emergency", satuan: "Pcs" },
-    ],
-  },
-  lainnya: {
-    label: "Lainnya",
-    color: "text-slate-700",
-    bgColor: "bg-slate-100 border-slate-200",
-    items: [],
-  },
 };
 
-const allKategoriKeys = Object.keys(kategoriConfig);
+const allKategoriKeys = Object.keys(kategoriConfig) as StokKategori[];
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type ViewMode = "list" | "edit-basecamp";
+
+function normalizeCategory(category: string): StokKategori {
+  const upper = (category || "").toUpperCase();
+  if (upper === "MAKANAN" || upper === "MINUMAN") return "MAKANAN";
+  if (upper === "PAKAIAN" || upper === "PERLENGKAPAN") return "PAKAIAN";
+  if (upper === "OBAT" || upper === "MEDIS") return "OBAT";
+  if (["MAKANAN", "PAKAIAN", "OBAT", "LAINNYA"].includes(upper)) return upper as StokKategori;
+  return "LAINNYA";
+}
+
+function getSatuanForName(name: string, category: StokKategori) {
+  const config = kategoriConfig[category];
+  const item = config.items.find((i) => i.nama === name);
+  return item?.satuan ?? "Pcs";
+}
 
 export function BasecampManager() {
   const [basecamps, setBasecamps] = useState<InventoryLocationData[]>([]);
   const [poskos, setPoskos] = useState<PoskoLocationData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [editingBasecampId, setEditingBasecampId] = useState<string | null>(null);
   const [editingStok, setEditingStok] = useState<StokItem[]>([]);
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"basecamp" | "posko">("basecamp");
   const [isSaving, setIsSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerKategori, setPickerKategori] = useState<string>("makanan");
+  const [pickerKategori, setPickerKategori] = useState<StokKategori>("MAKANAN");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -126,87 +132,96 @@ export function BasecampManager() {
     fetchData();
   }, []);
 
-  const getSatuanForName = (name: string, category: string) => {
-    const config = kategoriConfig[category];
-    if (config) {
-      const item = config.items.find(i => i.nama === name);
-      if (item) return item.satuan;
-    }
-    return "Pcs";
-  };
-
-  const handleEditBasecamp = (bc: InventoryLocationData) => {
-    const mappedStok = bc.needs.map(n => ({
-      id: n.id || `temp-${Math.random()}`,
-      kategori: n.category,
-      nama: n.item_name,
-      qty: n.qty_available,
-      satuan: getSatuanForName(n.item_name, n.category)
-    }));
+  const handleEditBasecamp = async (bc: InventoryLocationData) => {
     setEditingBasecampId(bc.id);
-    setEditingStok(mappedStok);
     setViewMode("edit-basecamp");
-    setShowPicker(false);
-  };
-
-  const mapToDbCategory = (cat: string) => {
-    const lowerCat = cat.toLowerCase();
-    if (lowerCat === "makanan" || lowerCat === "minuman") return "MAKANAN";
-    if (lowerCat === "medis") return "OBAT";
-    if (lowerCat === "perlengkapan" || lowerCat === "pakaian") return "PAKAIAN";
-    return "LAINNYA";
+    setIsLoadingDetails(true);
+    setSaveError(null);
+    try {
+      const res = await superAdminService.getLocationDetails("inventory", bc.id);
+      const fullNeeds = (res.data?.needs || []) as InventoryItem[];
+      const mappedStok: StokItem[] = fullNeeds.map((n) => {
+        const kategori = normalizeCategory(n.category);
+        return {
+          id: n.id,
+          kategori,
+          nama: n.item_name,
+          qty: n.qty_available,
+          satuan: getSatuanForName(n.item_name, kategori),
+        };
+      });
+      setEditingStok(mappedStok);
+      setShowPicker(false);
+    } catch (err) {
+      console.error(err);
+      setViewMode("list");
+      setEditingBasecampId(null);
+      alert("Gagal mengambil detail basecamp");
+    } finally {
+      setIsLoadingDetails(false);
+    }
   };
 
   const handleSaveBasecamp = async () => {
     if (!editingBasecampId) return;
     setIsSaving(true);
+    setSaveError(null);
     try {
       const payload = {
-        needs: editingStok.map(s => ({
-          item_name: s.nama,
-          category: mapToDbCategory(s.kategori || "lainnya"),
-          qty_available: s.qty,
-          satuan: s.satuan
-        }))
+        needs: editingStok
+          .filter((s) => s.nama.trim() !== "")
+          .map((s) => ({
+            ...(UUID_REGEX.test(s.id) ? { id: s.id } : {}),
+            item_name: s.nama.trim(),
+            category: s.kategori,
+            qty_available: s.qty,
+          })),
       };
       await superAdminService.updateInventoryStock(editingBasecampId, payload);
       await fetchData();
       setViewMode("list");
       setEditingBasecampId(null);
+      setEditingStok([]);
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan stok");
+      setSaveError(err instanceof Error ? err.message : "Gagal menyimpan stok");
     } finally {
       setIsSaving(false);
     }
   };
 
   const addFromPicker = (nama: string, satuan: string) => {
-    const exists = editingStok.some(s => s.nama === nama && s.kategori === pickerKategori);
+    const exists = editingStok.some((s) => s.nama === nama && s.kategori === pickerKategori);
     if (exists) return;
-    setEditingStok([...editingStok, { id: `s-${Date.now()}-${Math.random()}`, kategori: pickerKategori, nama, qty: 0, satuan }]);
+    setEditingStok([
+      ...editingStok,
+      { id: `temp-${Date.now()}-${Math.random()}`, kategori: pickerKategori, nama, qty: 0, satuan },
+    ]);
   };
 
   const addCustomStok = () => {
-    setEditingStok([...editingStok, { id: `s-custom-${Date.now()}`, kategori: "lainnya", nama: "", qty: 0, satuan: "Pcs" }]);
+    setEditingStok([
+      ...editingStok,
+      { id: `temp-${Date.now()}`, kategori: "LAINNYA", nama: "", qty: 0, satuan: "Pcs" },
+    ]);
   };
 
   const updateStok = (id: string, field: keyof StokItem, value: string | number) => {
-    setEditingStok(editingStok.map(s => s.id === id ? { ...s, [field]: value } : s));
+    setEditingStok(editingStok.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
   };
 
   const removeStok = (id: string) => {
-    setEditingStok(editingStok.filter(s => s.id !== id));
+    setEditingStok(editingStok.filter((s) => s.id !== id));
   };
 
   const groupedStok = editingStok.reduce<Record<string, StokItem[]>>((acc, item) => {
-    const cat = item.kategori || "lainnya";
+    const cat = item.kategori || "LAINNYA";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(item);
     return acc;
   }, {});
 
-  const currentEditingBasecamp = basecamps.find(b => b.id === editingBasecampId);
+  const currentEditingBasecamp = basecamps.find((b) => b.id === editingBasecampId);
 
   if (isLoading) {
     return (
@@ -222,7 +237,7 @@ export function BasecampManager() {
         <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => { setViewMode("list"); setEditingBasecampId(null); }}
+              onClick={() => { setViewMode("list"); setEditingBasecampId(null); setSaveError(null); }}
               className="p-2 bg-white border border-slate-200 hover:bg-slate-100 rounded-full transition-colors text-slate-500 shadow-sm"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -235,140 +250,151 @@ export function BasecampManager() {
         </div>
 
         <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                  <Package className="w-5 h-5 text-emerald-600" /> Inventaris Stok
-                </h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={addCustomStok}
-                    className="text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    + Custom
-                  </button>
-                  <button
-                    onClick={() => setShowPicker(!showPicker)}
-                    className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Pilih Barang
-                    <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showPicker && "rotate-180")} />
-                  </button>
+          {isLoadingDetails ? (
+            <div className="flex h-48 items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto space-y-6">
+              {saveError && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                  {saveError}
                 </div>
-              </div>
+              )}
 
-              {/* Item Picker */}
-              {showPicker && (
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-lg p-4 mb-5 animate-in slide-in-from-top-2 duration-200">
-                  <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-hide">
-                    {allKategoriKeys.filter(k => k !== "lainnya").map(k => (
-                      <button
-                        key={k}
-                        onClick={() => setPickerKategori(k)}
-                        className={cn(
-                          "px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all border",
-                          pickerKategori === k
-                            ? `${kategoriConfig[k].bgColor} ${kategoriConfig[k].color}`
-                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                        )}
-                      >
-                        {kategoriConfig[k].label}
-                      </button>
-                    ))}
+              <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                    <Package className="w-5 h-5 text-emerald-600" /> Inventaris Stok
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={addCustomStok}
+                      className="text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      + Custom
+                    </button>
+                    <button
+                      onClick={() => setShowPicker(!showPicker)}
+                      className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Pilih Barang
+                      <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showPicker && "rotate-180")} />
+                    </button>
                   </div>
+                </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {kategoriConfig[pickerKategori].items.map(item => {
-                      const alreadyAdded = editingStok.some(s => s.nama === item.nama && s.kategori === pickerKategori);
-                      return (
+                {showPicker && (
+                  <div className="bg-white border border-slate-200 rounded-2xl shadow-lg p-4 mb-5 animate-in slide-in-from-top-2 duration-200">
+                    <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+                      {allKategoriKeys.filter((k) => k !== "LAINNYA").map((k) => (
                         <button
-                          key={item.nama}
-                          disabled={alreadyAdded}
-                          onClick={() => addFromPicker(item.nama, item.satuan)}
+                          key={k}
+                          onClick={() => setPickerKategori(k)}
                           className={cn(
-                            "px-3 py-2 rounded-xl text-xs font-bold border transition-all",
-                            alreadyAdded
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200 cursor-default"
-                              : "bg-white text-slate-700 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700"
+                            "px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all border",
+                            pickerKategori === k
+                              ? `${kategoriConfig[k].bgColor} ${kategoriConfig[k].color}`
+                              : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                           )}
                         >
-                          {alreadyAdded ? "v " : "+ "}{item.nama}
-                          <span className="ml-1 text-slate-400 font-normal">({item.satuan})</span>
+                          {kategoriConfig[k].label}
                         </button>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {kategoriConfig[pickerKategori].items.map((item) => {
+                        const alreadyAdded = editingStok.some((s) => s.nama === item.nama && s.kategori === pickerKategori);
+                        return (
+                          <button
+                            key={item.nama}
+                            disabled={alreadyAdded}
+                            onClick={() => addFromPicker(item.nama, item.satuan)}
+                            className={cn(
+                              "px-3 py-2 rounded-xl text-xs font-bold border transition-all",
+                              alreadyAdded
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200 cursor-default"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700"
+                            )}
+                          >
+                            {alreadyAdded ? "v " : "+ "}{item.nama}
+                            <span className="ml-1 text-slate-400 font-normal">({item.satuan})</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {Object.keys(groupedStok).length > 0 ? (
+                  <div className="space-y-3">
+                    {Object.entries(groupedStok).map(([cat, items]) => {
+                      const cfg = kategoriConfig[cat as StokKategori] || kategoriConfig.LAINNYA;
+                      return (
+                        <div key={cat} className={cn("rounded-2xl border p-4", cfg.bgColor)}>
+                          <p className={cn("text-[10px] font-black uppercase tracking-widest mb-3", cfg.color)}>{cfg.label}</p>
+                          <div className="space-y-2">
+                            {items.map((item) => (
+                              <div key={item.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-white rounded-xl px-3 py-2 border border-white/80 shadow-sm">
+                                <span className="flex-1 w-full sm:w-auto text-sm font-bold text-slate-800 truncate">
+                                  {item.kategori === "LAINNYA" && !kategoriConfig.LAINNYA.items.some((i) => i.nama === item.nama) ? (
+                                    <input
+                                      type="text"
+                                      value={item.nama}
+                                      onChange={(e) => updateStok(item.id, "nama", e.target.value)}
+                                      className="w-full bg-transparent outline-none text-sm font-bold placeholder:text-slate-300"
+                                      placeholder="Nama barang..."
+                                    />
+                                  ) : (
+                                    item.nama
+                                  )}
+                                </span>
+                                <div className="flex items-center gap-2 ml-auto">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={item.qty}
+                                    onChange={(e) => updateStok(item.id, "qty", Number(e.target.value))}
+                                    className="w-20 text-center bg-slate-50 border border-slate-200 rounded-lg px-1 py-1.5 text-sm font-black outline-none focus:border-emerald-400"
+                                  />
+                                  {item.kategori === "LAINNYA" && !kategoriConfig.LAINNYA.items.some((i) => i.nama === item.nama) ? (
+                                    <input
+                                      type="text"
+                                      value={item.satuan}
+                                      onChange={(e) => updateStok(item.id, "satuan", e.target.value)}
+                                      className="w-16 text-center bg-slate-50 border border-slate-200 rounded-lg px-1 py-1.5 text-xs font-semibold text-slate-600 outline-none focus:border-emerald-400"
+                                      placeholder="Pcs"
+                                    />
+                                  ) : (
+                                    <span className="text-xs font-semibold text-slate-400 w-14 text-center">{item.satuan}</span>
+                                  )}
+                                  <button onClick={() => removeStok(item.id)} className="p-1 text-slate-400 hover:text-red-500 transition-colors">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
-                </div>
-              )}
-
-              {/* Grouped Stock Items */}
-              {Object.keys(groupedStok).length > 0 ? (
-                <div className="space-y-3">
-                  {Object.entries(groupedStok).map(([cat, items]) => {
-                    const cfg = kategoriConfig[cat] || kategoriConfig["lainnya"];
-                    return (
-                      <div key={cat} className={cn("rounded-2xl border p-4", cfg.bgColor)}>
-                        <p className={cn("text-[10px] font-black uppercase tracking-widest mb-3", cfg.color)}>{cfg.label}</p>
-                        <div className="space-y-2">
-                          {items.map(item => (
-                            <div key={item.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-white rounded-xl px-3 py-2 border border-white/80 shadow-sm">
-                              <span className="flex-1 w-full sm:w-auto text-sm font-bold text-slate-800 truncate">
-                                {item.kategori === "lainnya" ? (
-                                  <input
-                                    type="text"
-                                    value={item.nama}
-                                    onChange={e => updateStok(item.id, "nama", e.target.value)}
-                                    className="w-full bg-transparent outline-none text-sm font-bold placeholder:text-slate-300"
-                                    placeholder="Nama barang..."
-                                  />
-                                ) : (
-                                  item.nama
-                                )}
-                              </span>
-                              <div className="flex items-center gap-2 ml-auto">
-                                <input
-                                  type="number"
-                                  value={item.qty}
-                                  onChange={e => updateStok(item.id, "qty", Number(e.target.value))}
-                                  className="w-20 text-center bg-slate-50 border border-slate-200 rounded-lg px-1 py-1.5 text-sm font-black outline-none focus:border-emerald-400"
-                                />
-                                {item.kategori === "lainnya" ? (
-                                  <input
-                                    type="text"
-                                    value={item.satuan}
-                                    onChange={e => updateStok(item.id, "satuan", e.target.value)}
-                                    className="w-16 text-center bg-slate-50 border border-slate-200 rounded-lg px-1 py-1.5 text-xs font-semibold text-slate-600 outline-none focus:border-emerald-400"
-                                    placeholder="Pcs"
-                                  />
-                                ) : (
-                                  <span className="text-xs font-semibold text-slate-400 w-14 text-center">{item.satuan}</span>
-                                )}
-                                <button onClick={() => removeStok(item.id)} className="p-1 text-slate-400 hover:text-red-500 transition-colors">
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="text-xs font-bold text-slate-400">Belum ada stok. Klik "Pilih Barang" atau "+ Custom" untuk menambahkan.</p>
-                </div>
-              )}
-            </section>
-          </div>
+                ) : (
+                  <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-bold text-slate-400">Belum ada stok. Klik &quot;Pilih Barang&quot; atau &quot;+ Custom&quot; untuk menambahkan.</p>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
         </div>
 
         <div className="p-6 border-t border-slate-100 bg-white flex justify-end">
           <button
             onClick={handleSaveBasecamp}
-            disabled={isSaving}
+            disabled={isSaving || isLoadingDetails}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-8 py-3.5 rounded-2xl flex items-center gap-2 transition-all shadow-[0_8px_24px_rgba(5,150,105,0.3)] disabled:opacity-70 disabled:shadow-none"
           >
             {isSaving ? (
@@ -412,18 +438,13 @@ export function BasecampManager() {
               <h2 className="text-2xl font-black text-slate-800">Daftar Basecamp</h2>
               <p className="text-sm text-slate-500 mt-1">Kelola pusat logistik dan distribusi bantuan.</p>
             </div>
-            {/* 
-            <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors shadow-sm hidden">
-              <Plus className="w-4 h-4" /> Tambah Basecamp
-            </button>
-            */}
           </div>
 
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari basecamp..."
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:outline-none shadow-sm"
             />
@@ -431,10 +452,10 @@ export function BasecampManager() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {basecamps
-              .filter(bc => bc.name.toLowerCase().includes(searchQuery.toLowerCase()))
-              .map(bc => {
-                const grouped = bc.needs.reduce<Record<string, typeof bc.needs>>((acc, s) => {
-                  const cat = s.category || "lainnya";
+              .filter((bc) => bc.name.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map((bc) => {
+                const grouped = bc.needs.reduce<Record<string, InventoryItem[]>>((acc, s) => {
+                  const cat = normalizeCategory(s.category);
                   if (!acc[cat]) acc[cat] = [];
                   acc[cat].push(s);
                   return acc;
@@ -447,33 +468,42 @@ export function BasecampManager() {
                         <h3 className="text-lg font-black text-slate-800">{bc.name}</h3>
                         <p className="text-xs text-slate-500 mt-1 line-clamp-2">{bc.alamat}</p>
                         <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                          <Warehouse className="w-3.5 h-3.5" /> 
+                          <Warehouse className="w-3.5 h-3.5" />
                           {bc.totalVolunteers} Relawan Aktif
                         </p>
                       </div>
                       <button
                         onClick={() => handleEditBasecamp(bc)}
-                        className="p-2.5 rounded-xl bg-slate-50 group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 transition-colors shrink-0 ml-2"
+                        disabled={isLoadingDetails}
+                        className="p-2.5 rounded-xl bg-slate-50 group-hover:bg-emerald-50 text-slate-400 group-hover:text-emerald-600 transition-colors shrink-0 ml-2 disabled:opacity-50"
                       >
-                        <Edit3 className="w-4 h-4" />
+                        {isLoadingDetails && editingBasecampId === bc.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Edit3 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                     <div className="space-y-2 mt-auto">
-                      {Object.entries(grouped).map(([cat, items]) => {
-                        const cfg = kategoriConfig[cat] || kategoriConfig["lainnya"];
-                        return (
-                          <div key={cat}>
-                            <p className={cn("text-[10px] font-bold uppercase tracking-wider mb-1", cfg.color)}>{cfg.label}</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {items.map(s => (
-                                <span key={s.id} className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border", cfg.bgColor, cfg.color)}>
-                                  {s.item_name}: <span className="text-slate-900 ml-0.5">{s.qty_available} {getSatuanForName(s.item_name, s.category)}</span>
-                                </span>
-                              ))}
+                      {Object.keys(grouped).length > 0 ? (
+                        Object.entries(grouped).map(([cat, items]) => {
+                          const cfg = kategoriConfig[cat as StokKategori] || kategoriConfig.LAINNYA;
+                          return (
+                            <div key={cat}>
+                              <p className={cn("text-[10px] font-bold uppercase tracking-wider mb-1", cfg.color)}>{cfg.label}</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {items.map((s) => (
+                                  <span key={s.id} className={cn("inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border", cfg.bgColor, cfg.color)}>
+                                    {s.item_name}: <span className="text-slate-900 ml-0.5">{s.qty_available} {getSatuanForName(s.item_name, cat as StokKategori)}</span>
+                                  </span>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      ) : (
+                        <p className="text-xs font-semibold text-slate-400">Belum ada inventaris tercatat.</p>
+                      )}
                     </div>
                   </div>
                 );
@@ -490,7 +520,7 @@ export function BasecampManager() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {poskos.map(p => (
+            {poskos.map((p) => (
               <div key={p.id} className="bg-white border border-slate-200 rounded-3xl p-6 hover:border-blue-300 hover:shadow-lg transition-all">
                 <h3 className="text-lg font-black text-slate-800 mb-1 line-clamp-1" title={p.name}>{p.name}</h3>
                 <p className="text-xs text-slate-500 mb-4 line-clamp-2" title={p.alamat}>{p.alamat}</p>
