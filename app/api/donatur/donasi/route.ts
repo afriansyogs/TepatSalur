@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       longitude: validated.longitude,
       alamat_pickup: validated.alamatPickup,
       recommended_inventory_id: closestLocation.id,
-      status: "SUBMITTED",
+      status: "PENDING",
     }));
 
     const { data: donations, error: donationError } = await supabase

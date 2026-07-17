@@ -6,10 +6,13 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
-    const [poskoRes, merahRes, relawanRes] = await Promise.all([
+    const [poskoRes, merahRes, relawanRes, donasiPendingRes, donasiDeliveryRes, inventoryRes] = await Promise.all([
       supabase.from("posko").select("jumlah_pengungsi"),
       supabase.from("posko").select("id", { count: "exact", head: true }).eq("ai_status", "MERAH"),
       supabase.from("relawan_assignments").select("id", { count: "exact", head: true }).eq("status", "APPROVED").eq("is_active", true),
+      supabase.from("donasi").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
+      supabase.from("donasi").select("id", { count: "exact", head: true }).eq("status", "DELIVERY"),
+      supabase.from("inventory_items").select("id", { count: "exact", head: true }),
     ]);
 
     const totalPengungsi = (poskoRes.data ?? []).reduce((sum, p) => sum + (p.jumlah_pengungsi ?? 0), 0);
@@ -18,6 +21,9 @@ export async function GET() {
       totalPengungsi,
       totalPoskoMerah: merahRes.count ?? 0,
       totalRelawanAktif: relawanRes.count ?? 0,
+      totalDonasiPending: donasiPendingRes.count ?? 0,
+      totalDonasiDelivery: donasiDeliveryRes.count ?? 0,
+      totalInventoryItems: inventoryRes.count ?? 0,
     };
 
     return NextResponse.json({ success: true, data });
