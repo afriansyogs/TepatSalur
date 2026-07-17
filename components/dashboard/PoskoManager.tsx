@@ -267,9 +267,9 @@ export function PoskoManager() {
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-600" /> Profil Pengungsi
               </h3>
-              <Button onClick={() => setIsDemoModalOpen(true)} variant="outline" size="sm" className="h-9 px-4 rounded-xl border-slate-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-bold">
+              {/* <Button onClick={() => setIsDemoModalOpen(true)} variant="outline" size="sm" className="h-9 px-4 rounded-xl border-slate-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-bold">
                 <Edit3 className="w-4 h-4 mr-2" /> Edit Profil
-              </Button>
+              </Button> */}
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
