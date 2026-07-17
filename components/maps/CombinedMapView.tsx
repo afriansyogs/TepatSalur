@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Navbar } from "@/components/home/Navbar";
 import type { PoskoSummary, TriaseStatus } from "@/types/posko";
 import {
@@ -14,11 +14,14 @@ import {
   PhoneCall,
   Activity,
   ShieldCheck,
-  ArrowRight
+  ArrowRight,
+  Navigation,
+  Loader2
 } from "lucide-react";
-import { Map, MapMarker, MarkerContent, MarkerTooltip, MapControls, MapPopup } from "@/components/ui/map";
+import { Map, MapMarker, MarkerContent, MarkerTooltip, MapControls, MapPopup, MapRoute } from "@/components/ui/map";
 import { cn } from "@/lib/utils";
-import { poskoService } from "@/services/posko.service";
+import { mapService } from "@/services/map.service";
+import type MapLibreGL from "maplibre-gl";
 
 /* ── Status Theme Configuration ── */
 const statusTheme: Record<
@@ -69,16 +72,121 @@ type FilterKey = (typeof FILTERS)[number]["key"];
 
 export function CombinedMapView() {
   const [poskoList, setPoskoList] = useState<PoskoSummary[]>([]);
+  const [statsData, setStatsData] = useState<{ totalPengungsi: number; totalPoskoMerah: number; totalRelawanAktif: number }>({
+    totalPengungsi: 0,
+    totalPoskoMerah: 0,
+    totalRelawanAktif: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>("semua");
   const [search, setSearch] = useState("");
   const [selectedPoskoId, setSelectedPoskoId] = useState<string | null>(null);
 
+  // GPS User Location State
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string; coordinates: [number, number][] } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const mapRef = useRef<MapLibreGL.Map | null>(null);
+
+  // Detect User GPS on mount
   useEffect(() => {
-    poskoService.getMockPoskoList().then((data) => {
-      setPoskoList(data);
-      setLoading(false);
-    });
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.longitude, position.coords.latitude]);
+        },
+        () => {
+          // Default location Bogor/Cibinong if denied
+          setUserLocation([106.8529, -6.4807]);
+        }
+      );
+    }
+  }, []);
+
+  const centerOnUserLocation = useCallback(() => {
+    setLocating(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lng = pos.coords.longitude;
+          const lat = pos.coords.latitude;
+          setUserLocation([lng, lat]);
+          mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
+          setLocating(false);
+        },
+        () => {
+          // Fallback: pan to existing userLocation if available
+          if (userLocation) {
+            mapRef.current?.flyTo({ center: userLocation, zoom: 14, duration: 1500 });
+          }
+          setLocating(false);
+        }
+      );
+    }
+  }, [userLocation]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [statsRes, mapRes] = await Promise.all([
+          mapService.getStats(),
+          mapService.getMapData("all")
+        ]);
+
+        setStatsData(statsRes);
+
+        const poskos: PoskoSummary[] = (mapRes.posko || []).map((p) => {
+          let mappedStatus: TriaseStatus = "AMAN";
+          if (p.aiStatus === "MERAH") mappedStatus = "KRITIS";
+          else if (p.aiStatus === "KUNING") mappedStatus = "WASPADA";
+          else if (p.aiStatus === "HIJAU") mappedStatus = "AMAN";
+
+          return {
+            id: p.id,
+            namaPosko: p.name,
+            alamat: p.alamat || "",
+            kecamatan: p.kabKota || "",
+            triase: {
+              status: mappedStatus,
+              skor: p.aiUrgencyScore || 0,
+              updatedAt: new Date().toISOString()
+            },
+            totalPengungsi: p.jumlahPengungsi,
+            kebutuhanKritis: p.kebutuhan.map((k) => k.itemName),
+            relawanAktif: p.totalRelawan,
+            lat: p.latitude,
+            lng: p.longitude,
+            jenis: "bencana"
+          };
+        });
+
+        const inventories: PoskoSummary[] = (mapRes.inventory || []).map((i) => ({
+          id: i.id,
+          namaPosko: i.name,
+          alamat: i.alamat || "",
+          kecamatan: i.kabKota || "",
+          triase: {
+            status: "AMAN",
+            skor: 0,
+            updatedAt: new Date().toISOString()
+          },
+          totalPengungsi: 0,
+          kebutuhanKritis: [],
+          relawanAktif: i.totalRelawan,
+          lat: i.latitude,
+          lng: i.longitude,
+          jenis: "relawan"
+        }));
+
+        setPoskoList([...poskos, ...inventories]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   // Filtering & sorting logic
@@ -102,16 +210,57 @@ export function CombinedMapView() {
   }, [poskoList, filter, search]);
 
   const stats = useMemo(() => {
-    const bencana = poskoList.filter((p) => p.jenis !== "relawan");
-    const totalPengungsi = bencana.reduce((s, p) => s + p.totalPengungsi, 0);
-    const kritis = bencana.filter((p) => p.triase.status === "KRITIS").length;
-    const totalRelawan = poskoList.reduce((s, p) => s + p.relawanAktif, 0);
-    return { totalPengungsi, kritis, totalRelawan };
-  }, [poskoList]);
+    return {
+      totalPengungsi: statsData.totalPengungsi,
+      kritis: statsData.totalPoskoMerah,
+      totalRelawan: statsData.totalRelawanAktif,
+    };
+  }, [statsData]);
 
   const selectedPosko = useMemo(() => {
     return poskoList.find((p) => p.id === selectedPoskoId) || null;
   }, [poskoList, selectedPoskoId]);
+
+  // Calculate route via OSRM when selectedPosko or userLocation changes
+  useEffect(() => {
+    if (!userLocation || !selectedPosko) {
+      setRouteInfo(null);
+      return;
+    }
+
+    const posLng = selectedPosko.lng || 106.8529;
+    const posLat = selectedPosko.lat || -6.4807;
+
+    mapService.getRoute(userLocation, [posLng, posLat]).then((route) => {
+      if (route) {
+        setRouteInfo(route);
+      } else {
+        // Fallback to haversine if OSRM fails
+        const R = 6371;
+        const dLat = ((posLat - userLocation[1]) * Math.PI) / 180;
+        const dLon = ((posLng - userLocation[0]) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((userLocation[1] * Math.PI) / 180) *
+            Math.cos((posLat * Math.PI) / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distanceKm = R * c;
+        const timeHours = distanceKm / 40;
+        const timeMinutes = Math.max(1, Math.round(timeHours * 60));
+
+        setRouteInfo({
+          distance: `${distanceKm.toFixed(1)} km`,
+          duration:
+            timeMinutes >= 60
+              ? `${Math.floor(timeMinutes / 60)} jam ${timeMinutes % 60} menit`
+              : `${timeMinutes} menit`,
+          coordinates: [userLocation, [posLng, posLat]],
+        });
+      }
+    });
+  }, [userLocation, selectedPosko]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
@@ -179,8 +328,57 @@ export function CombinedMapView() {
               zoom: 8.5,
             }}
             loading={loading}
+            ref={mapRef}
           >
-            <MapControls position="bottom-right" showZoom showLocate showCompass />
+            <MapControls position="bottom-right" showZoom showCompass />
+
+            {/* GPS User Marker */}
+            {userLocation && (
+              <MapMarker
+                longitude={userLocation[0]}
+                latitude={userLocation[1]}
+              >
+                <MarkerContent>
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute rounded-full animate-ping bg-blue-400 opacity-75 w-6 h-6" />
+                    <div className="rounded-full bg-blue-600 border-2 border-white w-4 h-4 shadow-md flex items-center justify-center">
+                      <div className="bg-white rounded-full w-1.5 h-1.5" />
+                    </div>
+                  </div>
+                </MarkerContent>
+              </MapMarker>
+            )}
+
+            {/* Real Route via OSRM */}
+            {routeInfo?.coordinates && routeInfo.coordinates.length >= 2 && (
+              <MapRoute
+                coordinates={routeInfo.coordinates}
+                color="#2563eb"
+                width={5}
+                opacity={0.85}
+              />
+            )}
+
+            {/* GPS Saya Button - floating over map */}
+            <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+              <button
+                onClick={centerOnUserLocation}
+                disabled={locating}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg transition-all",
+                  "bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 hover:text-blue-600",
+                  "focus:outline-none focus:ring-2 focus:ring-blue-400"
+                )}
+                title="Pusatkan ke lokasi saya"
+              >
+                {locating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Navigation className="w-4 h-4" />
+                )}
+                GPS Saya
+              </button>
+            </div>
 
             {poskoList.map((posko) => {
               const isRelawan = posko.jenis === "relawan";
@@ -257,7 +455,7 @@ export function CombinedMapView() {
                           "font-bold text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider",
                           selectedPosko.triase.status === "KRITIS" ? "bg-rose-100 text-rose-700 border-rose-200" :
                           selectedPosko.triase.status === "WASPADA" ? "bg-amber-100 text-amber-700 border-amber-200" :
-                          "bg-blue-100 text-blue-700 border-blue-200"
+                          "bg-emerald-100 text-emerald-700 border-emerald-200"
                         )}>
                           {selectedPosko.triase.status} ({selectedPosko.triase.skor})
                         </span>
@@ -272,6 +470,20 @@ export function CombinedMapView() {
                           <span className="text-rose-600 font-semibold">{selectedPosko.kebutuhanKritis.join(", ")}</span>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Route & Jarak Info */}
+                  {routeInfo && (
+                    <div className="mt-2 mb-4 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1 animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium">Jarak Tempuh:</span>
+                        <span className="font-bold text-slate-800">{routeInfo.distance}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium">Estimasi Waktu:</span>
+                        <span className="font-bold text-blue-600">{routeInfo.duration}</span>
+                      </div>
                     </div>
                   )}
 
@@ -390,15 +602,34 @@ export function CombinedMapView() {
                     )}
                   >
                     <div className="relative w-full h-[140px] bg-slate-100 overflow-hidden">
-                      {posko.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={posko.imageUrl} alt={posko.namaPosko} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-300">
-                          <MapPin className="w-8 h-8" />
-                        </div>
-                      )}
-                      
+                      {/* Mini Map Preview relative to posko coordinate */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <Map
+                          theme="light"
+                          viewport={{
+                            center: [posko.lng || 106.8529, posko.lat || -6.4807],
+                            zoom: 12.5,
+                          }}
+                          attributionControl={false}
+                        >
+                          <MapMarker
+                            longitude={posko.lng || 106.8529}
+                            latitude={posko.lat || -6.4807}
+                          >
+                            <MarkerContent>
+                              <div
+                                className="rounded-full border-2 border-white shadow-md"
+                                style={{
+                                  backgroundColor: isRelawan ? "#3b82f6" : theme.pinColor,
+                                  width: 14,
+                                  height: 14,
+                                }}
+                              />
+                            </MarkerContent>
+                          </MapMarker>
+                        </Map>
+                      </div>
+
                       {/* Badge overlay */}
                       <div className="absolute top-4 left-4 z-10">
                         {isRelawan ? (
@@ -457,8 +688,16 @@ export function CombinedMapView() {
                           posko.kebutuhanKritis.length > 0 ? (
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {posko.kebutuhanKritis.slice(0, 2).map((need) => (
-                                <span key={need} className="inline-flex items-center gap-1 bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-bold px-2 py-1 rounded-full">
-                                  <AlertTriangle className="w-3 h-3 text-rose-500" /> {need}
+                                <span key={need} className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border",
+                                  posko.triase.status === "KRITIS" ? "bg-rose-50 border-rose-100 text-rose-600" :
+                                  posko.triase.status === "WASPADA" ? "bg-amber-50 border-amber-100 text-amber-600" :
+                                  "bg-emerald-50 border-emerald-100 text-emerald-600"
+                                )}>
+                                  <AlertTriangle className={cn("w-3 h-3",
+                                    posko.triase.status === "KRITIS" ? "text-rose-500" :
+                                    posko.triase.status === "WASPADA" ? "text-amber-500" :
+                                    "text-emerald-500"
+                                  )} /> {need}
                                 </span>
                               ))}
                             </div>
