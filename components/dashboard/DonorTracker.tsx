@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, MapPin, Loader2, ArrowRight, Calendar, Warehouse, CheckCircle, Clock, Heart, ClipboardList } from "lucide-react";
+import { Package, MapPin, Loader2, ArrowRight, Calendar, Warehouse, CheckCircle, Clock, Heart, ClipboardList, XCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { donasiService } from "@/services/donasi.service";
 import { DonationHistoryRecord } from "@/types/donasi";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 type DonationHistoryItem = {
   id: string;
@@ -88,26 +89,53 @@ export function DonorTracker() {
   const [filteredDonations, setFilteredDonations] = useState<DonationHistoryItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "DELIVERY" | "ACCEPTED" | "REJECTED">("ALL");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Stats calculation
   const totalBundles = donations.length;
   const totalItemsCount = donations.reduce((sum, d) => sum + d.items.reduce((iSum, item) => iSum + item.qty, 0), 0);
   const uniqueGudangs = new Set(donations.map(d => d.gudangTujuan)).size;
 
-  useEffect(() => {
-    async function loadHistory() {
-      try {
-        const records = await donasiService.getDonaturDonationHistory();
-        const grouped = groupDonations(records);
-        setDonations(grouped);
-        setFilteredDonations(grouped);
-      } catch (err) {
-        console.error("Gagal memuat riwayat donasi:", err);
-      } finally {
-        setLoading(false);
-      }
+  const loadHistory = async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
+    try {
+      const records = await donasiService.getDonaturDonationHistory();
+      const grouped = groupDonations(records);
+      setDonations(grouped);
+      setFilteredDonations(grouped);
+    } catch (err) {
+      console.error("Gagal memuat riwayat donasi:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  useEffect(() => {
     loadHistory();
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("donasi-tracker-updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "donasi" },
+        () => {
+          loadHistory(true);
+        }
+      )
+      .subscribe();
+
+    // Polling fallback every 3 seconds to guarantee updates
+    const interval = setInterval(() => {
+      loadHistory(true);
+    }, 3000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   // Handle filtering
@@ -136,13 +164,23 @@ export function DonorTracker() {
           <h2 className="text-2xl font-black text-slate-800">Riwayat Donasi Bantuan</h2>
           <p className="text-sm text-slate-500 mt-1">Daftar lengkap kontribusi logistik dan status penerimaan bantuan Anda.</p>
         </div>
-        <Link
-          href="/dashboard/donatur/buat-donasi"
-          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/10"
-        >
-          <span>Donasi Baru</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => loadHistory(true)}
+            disabled={refreshing}
+            className="flex items-center justify-center p-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl transition-all disabled:opacity-50"
+            title="Refresh Status"
+          >
+            <RefreshCw className={cn("w-4 h-4 text-slate-600", refreshing && "animate-spin")} />
+          </button>
+          <Link
+            href="/dashboard/donatur/buat-donasi"
+            className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/10"
+          >
+            <span>Donasi Baru</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
 
       {donations.length === 0 ? (
@@ -336,30 +374,39 @@ export function DonorTracker() {
                     <div className="mt-4 pt-3 border-t border-slate-100/60 flex items-center justify-between text-[11px]">
                       <span className="text-slate-400 font-medium">Langkah Logistik:</span>
                       <div className="flex items-center gap-2 font-bold">
-                        <span className="flex items-center gap-0.5 text-emerald-600">
-                          <CheckCircle className="w-3.5 h-3.5" /> Diajukan
-                        </span>
-                        {(donation.status === "DELIVERY" || donation.status === "ACCEPTED") ? (
-                          <span className="flex items-center gap-0.5 text-emerald-600">
-                            <CheckCircle className="w-3.5 h-3.5" /> Dalam Perjalanan
-                          </span>
+                        {donation.status === "REJECTED" ? (
+                          <>
+                            <span className="flex items-center gap-0.5 text-emerald-600">
+                              <CheckCircle className="w-3.5 h-3.5" /> Diajukan
+                            </span>
+                            <span className="flex items-center gap-0.5 text-rose-500">
+                              <XCircle className="w-3.5 h-3.5" /> Ditolak
+                            </span>
+                          </>
                         ) : (
-                          <span className="flex items-center gap-0.5 text-slate-300">
-                            <Clock className="w-3.5 h-3.5" /> Dalam Perjalanan
-                          </span>
-                        )}
-                        {donation.status === "ACCEPTED" ? (
-                          <span className="flex items-center gap-0.5 text-emerald-600">
-                            <CheckCircle className="w-3.5 h-3.5" /> Diterima Gudang
-                          </span>
-                        ) : donation.status === "REJECTED" ? (
-                          <span className="flex items-center gap-0.5 text-rose-500">
-                            <Clock className="w-3.5 h-3.5" /> Ditolak
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-0.5 text-slate-300">
-                            <Clock className="w-3.5 h-3.5" /> Diterima Gudang
-                          </span>
+                          <>
+                            <span className="flex items-center gap-0.5 text-emerald-600">
+                              <CheckCircle className="w-3.5 h-3.5" /> Diajukan
+                            </span>
+                            {donation.status === "DELIVERY" || donation.status === "ACCEPTED" ? (
+                              <span className="flex items-center gap-0.5 text-emerald-600">
+                                <CheckCircle className="w-3.5 h-3.5" /> Dalam Perjalanan
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-0.5 text-slate-300">
+                                <Clock className="w-3.5 h-3.5" /> Dalam Perjalanan
+                              </span>
+                            )}
+                            {donation.status === "ACCEPTED" ? (
+                              <span className="flex items-center gap-0.5 text-emerald-600">
+                                <CheckCircle className="w-3.5 h-3.5" /> Diterima Gudang
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-0.5 text-slate-300">
+                                <Clock className="w-3.5 h-3.5" /> Diterima Gudang
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

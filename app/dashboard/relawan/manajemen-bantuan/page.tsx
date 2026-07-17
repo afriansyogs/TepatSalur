@@ -1,9 +1,9 @@
-import { DonationManager } from "@/components/dashboard/DonationManager";
+import { InventoryManager } from "@/components/inventory/InventoryManager";
 
 export const metadata = {
-  title: "Manajemen Bantuan - TepatSalur",
+  title: "Manajemen Inventory - TepatSalur",
 };
 
 export default function ManajemenBantuanPage() {
-  return <DonationManager />;
+  return <InventoryManager />;
 }
