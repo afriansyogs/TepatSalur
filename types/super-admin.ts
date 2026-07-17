@@ -104,9 +104,8 @@ export interface UpdateInventoryPayload {
   needs: {
     id?: string;
     item_name: string;
-    category: string;
+    category: "MAKANAN" | "PAKAIAN" | "OBAT" | "LAINNYA";
     qty_available: number;
-    satuan: string;
   }[];
 }
 

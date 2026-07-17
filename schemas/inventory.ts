@@ -12,5 +12,19 @@ export const editInventoryItemSchema = z.object({
   qtyAvailable: z.number().int().min(0).optional(),
 }).refine((d) => Object.keys(d).length > 0, { message: "Minimal satu field harus diisi" });
 
+export const inventoryCategoryEnum = z.enum(["MAKANAN", "PAKAIAN", "OBAT", "LAINNYA"]);
+
+export const updateInventoryStockSchema = z.object({
+  needs: z.array(
+    z.object({
+      id: z.string().uuid().optional(),
+      item_name: z.string().min(1, "Nama barang wajib diisi"),
+      category: inventoryCategoryEnum,
+      qty_available: z.number().int().min(0, "Jumlah tidak boleh negatif"),
+    })
+  ),
+});
+
 export type AddInventoryItemValues = z.infer<typeof addInventoryItemSchema>;
 export type EditInventoryItemValues = z.infer<typeof editInventoryItemSchema>;
+export type UpdateInventoryStockValues = z.infer<typeof updateInventoryStockSchema>;

@@ -26,7 +26,7 @@ type MenuItem = {
 
 const allMenuItems: MenuItem[] = [
   // Super Admin menus
-  { id: "manage-basecamp",  label: "Manage Basecamp",  icon: Warehouse,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-basecamp" },
+  { id: "manage-basecamp",  label: "Manage Posko & Basecamp",  icon: Warehouse,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-basecamp" },
   { id: "tambah-posko",     label: "Add Posko/Basecamp",     icon: MapPinPlus,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/tambah-posko" },
   { id: "manage-member",    label: "Manage Member",     icon: UserPlus,        roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-member" },
 
