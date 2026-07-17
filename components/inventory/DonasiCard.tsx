@@ -94,7 +94,7 @@ export function DonasiCard({ donasi, onAccept, onConfirm, onReject }: DonasiCard
       else if (action === "confirm") await onConfirm(donasi.id);
       else await onReject(donasi.id);
     } catch {
-      // error handled by parent
+      
     } finally {
       setLoading(false);
       setConfirmAction(null);

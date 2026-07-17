@@ -13,7 +13,7 @@ export function AddPoskoForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toasts, show, dismiss } = useToast();
 
-  // Common location state
+  
   const [locationData, setLocationData] = useState({
     name: "",
     latitude: -6.200000,
@@ -148,7 +148,7 @@ export function AddPoskoForm() {
         `${activeTab === "posko" ? "Posko pengungsian" : "Basecamp"} baru telah ditambahkan ke sistem.`
       );
       
-      // Reset form
+      
       setLocationData({
         name: "", latitude: -6.200000, longitude: 106.816666,
         alamat: "", provinsi: "", kabKota: "", kecamatan: "", fotoUrl: ""
@@ -197,7 +197,7 @@ export function AddPoskoForm() {
         </p>
       )}
 
-      {/* Map Area */}
+      {}
       <div className="w-full h-[240px] rounded-2xl overflow-hidden border border-slate-200 relative bg-slate-50 z-0">
         <Map
           theme="light"
@@ -342,10 +342,10 @@ export function AddPoskoForm() {
   return (
     <div className="flex flex-col lg:flex-row h-full w-full justify-center">
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
-      {/* Content: Manual Form */}
+      {}
       <div className={cn("w-full max-w-4xl p-6 lg:p-8 bg-white overflow-auto mx-auto")}>
         
-        {/* Tab Selector */}
+        {}
         <div className="flex gap-2 bg-slate-50 rounded-2xl border border-slate-200 p-1.5 shadow-sm w-fit mb-8">
           <button
             type="button"

@@ -8,7 +8,7 @@ export default function PendingApprovalPage() {
   return (
     <div className="w-full max-w-3xl mx-auto h-[calc(100vh-8rem)] flex items-center justify-center">
       <div className="bg-white rounded-3xl shadow-sm border border-ink-100 p-10 lg:p-12 text-center relative overflow-hidden">
-        {/* Background accent */}
+        {}
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-500" />
         
         <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-amber-100/50">

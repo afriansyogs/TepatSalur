@@ -207,7 +207,7 @@ export async function PATCH(
     const userCommunityId = userRow.community_id;
 
     if (type === "posko") {
-      // Authorization check for Posko
+      
       let isAuthorized = false;
       if (userRow.role === "SUPER_ADMIN") {
         if (!userCommunityId) {
@@ -355,7 +355,7 @@ export async function PATCH(
       return NextResponse.json({ success: true });
     }
 
-    // Inventory Type Update
+    
     if (userRow.role !== "SUPER_ADMIN" || !userCommunityId) {
       return NextResponse.json({ success: false, error: "Akses ditolak" }, { status: 403 });
     }

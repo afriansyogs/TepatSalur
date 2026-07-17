@@ -37,7 +37,7 @@ export function SektorRiwayatDonasi({ history }: Props) {
 
   return (
     <section id="riwayat-donasi" className="px-4 pt-6 pb-8">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-2 mb-4">
         <div className="w-1 h-6 rounded-full bg-blue-600" />
         <div>
@@ -62,7 +62,7 @@ export function SektorRiwayatDonasi({ history }: Props) {
               key={h.id}
               className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col gap-4"
             >
-              {/* Header Info */}
+              {}
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">
@@ -81,7 +81,7 @@ export function SektorRiwayatDonasi({ history }: Props) {
                 </span>
               </div>
 
-              {/* Items List */}
+              {}
               <div className="flex flex-wrap gap-2">
                 {h.items.map((item, idx) => (
                   <span
@@ -100,7 +100,7 @@ export function SektorRiwayatDonasi({ history }: Props) {
                 ))}
               </div>
 
-              {/* Delivery Relawan */}
+              {}
               <div className="border-t border-slate-100/60 pt-3 flex items-center justify-between text-xs text-slate-500">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-blue-500" />

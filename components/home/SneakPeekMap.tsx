@@ -30,7 +30,7 @@ function UrgencyPin({ urgency, type }: { urgency: string; type: string }) {
 
   return (
     <div className="relative flex items-center justify-center">
-      {/* Wave rings — only for kritis */}
+      {}
       {isKritis && (
         <>
           <span
@@ -53,7 +53,7 @@ function UrgencyPin({ urgency, type }: { urgency: string; type: string }) {
           style={{ width: 28, height: 28, backgroundColor: color, animationDuration: "2s" }}
         />
       )}
-      {/* Core dot */}  
+      {}  
       <span
         className="relative rounded-full border-2 border-white shadow-md"
         style={{
@@ -75,7 +75,7 @@ export function SneakPeekMap() {
       <div data-aos="fade-up" className="max-w-[1200px] mx-auto px-6 lg:px-10">
         <div className="relative rounded-[32px] overflow-hidden border border-slate-200 bg-slate-50 shadow-[0_4px_32px_-8px_rgba(15,23,42,0.08)]">
 
-          {/* Top content */}
+          {}
           <div className="relative z-10 px-10 md:px-16 pt-14 pb-10 text-center">
             <h2 className="text-ink-900 text-[34px] font-extrabold mb-4 font-heading tracking-tight">
               Ayo pantau keadaan posko{" "}
@@ -86,12 +86,12 @@ export function SneakPeekMap() {
             </p>
           </div>
 
-          {/* Map area */}
+          {}
           <div
             className="relative mx-6 md:mx-10 mb-6 rounded-[20px] overflow-hidden border border-slate-200 bg-slate-100 shadow-sm"
             style={{ height: 380 }}
           >
-            {/* Map — pointer-events enabled so pins visible */}
+            {}
             <div className="absolute inset-0 z-0">
               <Map
                 theme="light"
@@ -113,7 +113,7 @@ export function SneakPeekMap() {
               </Map>
             </div>
 
-            {/* Status legend */}
+            {}
             <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-[16px] px-4 py-3.5 z-20 shadow-sm pointer-events-none">
               <div className="text-ink-900 text-[12px] font-bold mb-3">Status area</div>
               {[
@@ -132,7 +132,7 @@ export function SneakPeekMap() {
               ))}
             </div>
 
-            {/* CTA overlay */}
+            {}
             <div className="absolute inset-0 flex items-center justify-center z-20 bg-white/10 backdrop-blur-[1.5px]">
               <Link
                 href="/maps"
@@ -146,7 +146,7 @@ export function SneakPeekMap() {
             </div>
           </div>
 
-          {/* Bottom bar */}
+          {}
           <div className="flex items-center justify-between px-10 pb-8">
             <div className="flex items-center gap-1.5 text-ink-500 text-[12.5px]">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />

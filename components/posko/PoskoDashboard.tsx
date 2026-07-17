@@ -39,7 +39,7 @@ export function PoskoDashboard({ poskoId }: Props) {
   useEffect(() => {
     fetchPosko();
 
-    // Check User Role
+    
     authService.getCurrentUser().then((user) => {
       if (user) {
         setUserRole(user.role);
@@ -70,7 +70,7 @@ export function PoskoDashboard({ poskoId }: Props) {
     );
   }
 
-  // Construct types for sub-components
+  
   let mappedStatus: "KRITIS" | "WASPADA" | "AMAN" = "AMAN";
   if (poskoData.aiStatus === "MERAH") mappedStatus = "KRITIS";
   else if (poskoData.aiStatus === "KUNING") mappedStatus = "WASPADA";
@@ -103,7 +103,7 @@ export function PoskoDashboard({ poskoId }: Props) {
     status: k.status as any
   }));
 
-  // Map relawan assignments
+  
   const kedatangan: Kedatangan[] = poskoData.relawan.map((r, index) => ({
     id: String(index),
     namaRelawan: r.name,
@@ -121,7 +121,7 @@ export function PoskoDashboard({ poskoId }: Props) {
         triase={triase}
       />
 
-      {/* Role Action Bar */}
+      {}
       {userRole === "DONATUR" && (
         <div className="max-w-3xl w-full mx-auto px-4 pt-6 flex justify-end z-10 animate-in fade-in duration-200">
           <Link
@@ -142,7 +142,7 @@ export function PoskoDashboard({ poskoId }: Props) {
         <SektorRiwayatDonasi history={poskoData.history || []} />
       </main>
 
-      {/* Bottom safe area for mobile */}
+      {}
       <div className="h-8" />
     </div>
   );

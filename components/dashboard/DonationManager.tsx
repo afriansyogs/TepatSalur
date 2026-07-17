@@ -55,7 +55,7 @@ export function DonationManager() {
     if (!selectedDonation) return;
     setIsUploading(true);
     
-    // Simulate upload delay
+    
     setTimeout(() => {
       setDonations((prev) =>
         prev.map((d) =>
@@ -116,7 +116,7 @@ export function DonationManager() {
             key={donation.id}
             className="border border-slate-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:border-blue-200 hover:shadow-md bg-white"
           >
-            {/* Donation Info */}
+            {}
             <div className="space-y-3 flex-1">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-black text-slate-400 uppercase tracking-wider">
@@ -162,7 +162,7 @@ export function DonationManager() {
               </div>
             </div>
 
-            {/* Action Area */}
+            {}
             <div className="flex-shrink-0 flex flex-col justify-center min-w-[200px]">
               {donation.status === "Menunggu" ? (
                 selectedDonation === donation.id ? (

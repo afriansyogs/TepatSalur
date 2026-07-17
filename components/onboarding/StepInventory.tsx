@@ -106,7 +106,7 @@ export function StepInventory({ defaultValues, onSubmit, onBack, isLoading }: St
       });
 
       if (error) {
-        // Fallback Base64
+        
         console.warn("Supabase upload failed, using Base64 fallback:", error.message);
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -125,7 +125,7 @@ export function StepInventory({ defaultValues, onSubmit, onBack, isLoading }: St
       }
     } catch (err: unknown) {
       console.error("Upload error:", err);
-      // Fallback base64
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setValue("fotoUrl", reader.result as string);
@@ -164,7 +164,7 @@ export function StepInventory({ defaultValues, onSubmit, onBack, isLoading }: St
         </p>
       )}
 
-      {/* Map Area */}
+      {}
       <div className="w-full h-[240px] rounded-2xl overflow-hidden border border-slate-200 relative bg-slate-50">
         <Map
           theme="light"
@@ -175,7 +175,7 @@ export function StepInventory({ defaultValues, onSubmit, onBack, isLoading }: St
         >
           <MapControls position="bottom-right" showZoom showLocate showCompass />
 
-          {/* Marker Gudang Draggable */}
+          {}
           <MapMarker
             longitude={watchLongitude}
             latitude={watchLatitude}

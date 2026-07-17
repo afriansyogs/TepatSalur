@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Akses ditolak" }, { status: 403 });
     }
 
-    // Get active assignment for this relawan
+    
     const { data: assignment, error: assignmentError } = await supabase
       .from("relawan_assignments")
       .select(`
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     const poskoData = Array.isArray(assignment.posko) ? assignment.posko[0] : assignment.posko;
 
-    // Fetch posko needs
+    
     const { data: needs, error: needsError } = await supabase
       .from("posko_kebutuhan")
       .select("*")
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         alamat: poskoData.alamat,
         urgencyStatus: poskoData.ai_status || "HIJAU",
         urgencyScore: poskoData.ai_urgency_score || 0,
-        // Flattened properties for AssignedPosko (VoiceInputForm)
+        
         jumlahPengungsi: poskoData.jumlah_pengungsi || 0,
         jumlahDewasa: poskoData.jumlah_dewasa || 0,
         jumlahAnak: poskoData.jumlah_anak || 0,
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         catatanMedisDarurat: poskoData.catatan_medis_darurat || "",
         aiStatus: poskoData.ai_status || "HIJAU",
         aiUrgencyScore: poskoData.ai_urgency_score || 0,
-        // Nested properties for PoskoManager
+        
         demographics: {
           pengungsi: poskoData.jumlah_pengungsi || 0,
           dewasa: poskoData.jumlah_dewasa || 0,
@@ -126,7 +126,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get active assignment for this relawan
+    
     const { data: assignment, error: assignmentError } = await supabase
       .from("relawan_assignments")
       .select("posko_id")
@@ -177,7 +177,7 @@ export async function PATCH(req: NextRequest) {
 
       for (const item of kebutuhan) {
         if (item.id && item.id.length > 20 && !item.id.startsWith("k-")) {
-          // Existing item
+          
           updateItems.push({
             id: item.id,
             posko_id: poskoId,
@@ -187,7 +187,7 @@ export async function PATCH(req: NextRequest) {
             status: item.status || "OPEN"
           });
         } else {
-          // New item
+          
           newItems.push({
             posko_id: poskoId,
             item_name: item.nama || item.item_name,

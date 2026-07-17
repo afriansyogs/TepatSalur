@@ -38,7 +38,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
       : supabase;
 
-    // Update status + set accepted_by + INSERT inventory_item
+    
     const [updateRes, insertRes] = await Promise.all([
       supabaseAdmin
         .from("donasi")

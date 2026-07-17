@@ -91,7 +91,7 @@ export function VoiceInputForm() {
       setValue("jumlahDisabilitas", assigned.jumlahDisabilitas || 0);
       setValue("jumlahIbuHamil", assigned.jumlahIbuHamil || 0);
       setValue("catatanMedisDarurat", assigned.catatanMedisDarurat ?? "");
-      // Do not prepopulate kebutuhan so we don't duplicate on save
+      
     }
     setIsLoadingPosko(false);
   }, [setValue]);
@@ -209,7 +209,7 @@ export function VoiceInputForm() {
         jumlahDisabilitas: posko.jumlahDisabilitas,
         jumlahIbuHamil: posko.jumlahIbuHamil || 0,
         catatanMedisDarurat: posko.catatanMedisDarurat ?? "",
-        kebutuhan: [], // Voice input only appends, keep empty on reset
+        kebutuhan: [], 
       });
     }
   };
@@ -263,7 +263,7 @@ export function VoiceInputForm() {
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)] -m-6">
-      {/* Left Sidebar: Voice Note */}
+      {}
       <div className="w-full lg:w-1/3 bg-slate-50 border-r border-slate-200 p-6 flex flex-col items-center justify-center min-h-[300px]">
         <div className="text-center mb-8 max-w-[250px]">
           <h3 className="text-lg font-bold text-slate-800 mb-2">Input Suara AI</h3>
@@ -342,10 +342,10 @@ export function VoiceInputForm() {
         )}
       </div>
 
-      {/* Right Content: Manual Form */}
+      {}
       <div className="flex-1 overflow-auto p-6 lg:p-8 bg-white">
         <div className="max-w-4xl mx-auto space-y-6">
-      {/* Posko Info Badge */}
+      {}
       <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100 flex-shrink-0">
           <MapPin className="w-6 h-6 text-blue-600" />
@@ -373,11 +373,11 @@ export function VoiceInputForm() {
         </div>
       </div>
 
-      {/* Editable Form */}
+      {}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <input type="hidden" {...register("poskoId")} />
 
-        {/* Demografi Section */}
+        {}
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
           <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
@@ -471,7 +471,7 @@ export function VoiceInputForm() {
           </div>
         </div>
 
-        {/* Kebutuhan Section */}
+        {}
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
@@ -547,15 +547,15 @@ export function VoiceInputForm() {
           )}
         </div>
 
-        {/* Action Buttons */}
+        {}
         <div className="flex items-center gap-3">
-          {/* <button
-            type="button"
-            onClick={resetForm}
-            className="px-5 py-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl text-sm font-bold text-slate-600 flex items-center gap-2 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" /> Reset
-          </button> */}
+          {
+
+
+
+
+
+}
 
           <button
             type="submit"
@@ -588,11 +588,11 @@ export function VoiceInputForm() {
         </div>
       </div>
 
-      {/* Triage Result Modal */}
+      {}
       {isTriageOpen && triageResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full shadow-2xl p-6 relative overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Background design accents */}
+            {}
             <div className={cn(
               "absolute top-0 right-0 w-32 h-32 rounded-bl-full -z-0 opacity-15",
               triageResult.status === "MERAH" && "bg-red-500",
@@ -601,7 +601,7 @@ export function VoiceInputForm() {
             )} />
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              {/* Icon */}
+              {}
               <div className={cn(
                 "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border shadow-sm",
                 triageResult.status === "MERAH" && "bg-red-50 border-red-100 text-red-600",
@@ -611,11 +611,11 @@ export function VoiceInputForm() {
                 {triageResult.status === "MERAH" ? <AlertTriangle className="w-8 h-8 animate-bounce" /> : <CheckCircle2 className="w-8 h-8 text-emerald-600" />}
               </div>
 
-              {/* Title */}
+              {}
               <h3 className="text-xl font-black text-slate-800 mb-1">Triage AI Selesai</h3>
               <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-6">Klasifikasi Urgensi Posko</p>
 
-              {/* Status & Score */}
+              {}
               <div className="w-full bg-slate-50 rounded-2xl border border-slate-100 p-5 mb-6 flex flex-col gap-4">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-500">Status Prioritas</span>
@@ -644,7 +644,7 @@ export function VoiceInputForm() {
                 </div>
               </div>
 
-              {/* Description */}
+              {}
               <p className="text-sm text-slate-600 leading-relaxed mb-6">
                 Data posko dan kebutuhan logistik berhasil disimpan ke database. AI telah mengklasifikasikan posko ini dengan prioritas <strong className={cn(
                   triageResult.status === "MERAH" && "text-red-700",
@@ -653,7 +653,7 @@ export function VoiceInputForm() {
                 )}>{triageResult.status}</strong>.
               </p>
 
-              {/* Close Button */}
+              {}
               <button
                 type="button"
                 onClick={() => setIsTriageOpen(false)}

@@ -114,7 +114,7 @@ export function RegisterForm() {
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
       <div className="flex flex-col">
-        {/* Logo */}
+        {}
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-sm">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -124,7 +124,7 @@ export function RegisterForm() {
           <span className="text-lg font-bold tracking-tight text-navy-800">tepatsalur</span>
         </div>
 
-        {/* Role Badge */}
+        {}
         <div className="mt-8">
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-semibold ${config.color} ${config.bg} ${config.border}`}>
             {config.icon}
@@ -132,7 +132,7 @@ export function RegisterForm() {
           </div>
         </div>
 
-        {/* Header */}
+        {}
         <div className="mt-5 space-y-1.5">
           <h1 className="text-[21px] font-bold tracking-tight text-navy-800">Buat Akun Baru</h1>
           <p className="text-sm text-ink-500">
@@ -140,7 +140,7 @@ export function RegisterForm() {
           </p>
         </div>
 
-        {/* Form */}
+        {}
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
           <div className="space-y-1.5">
             <label htmlFor="name" className="text-sm font-medium text-navy-700">Nama Lengkap</label>
@@ -236,7 +236,7 @@ export function RegisterForm() {
           <div className="h-px flex-1 bg-ink-200" />
         </div>
 
-        {/* <GoogleAuthButton mode="signup" requestedRole={roleKey} /> */}
+        {}
 
         <p className="mt-6 text-center text-sm text-ink-500">
           Sudah punya akun?{" "}

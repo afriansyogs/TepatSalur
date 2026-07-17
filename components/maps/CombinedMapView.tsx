@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { mapService } from "@/services/map.service";
 import type MapLibreGL from "maplibre-gl";
 
-/* ── Status Theme Configuration ── */
+
 const statusTheme: Record<
   TriaseStatus,
   {
@@ -82,13 +82,13 @@ export function CombinedMapView() {
   const [search, setSearch] = useState("");
   const [selectedPoskoId, setSelectedPoskoId] = useState<string | null>(null);
 
-  // GPS User Location State
+  
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [routeInfo, setRouteInfo] = useState<{ distance: string; duration: string; coordinates: [number, number][] } | null>(null);
   const [locating, setLocating] = useState(false);
   const mapRef = useRef<MapLibreGL.Map | null>(null);
 
-  // Detect User GPS on mount
+  
   useEffect(() => {
     if (typeof window !== "undefined" && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -96,7 +96,7 @@ export function CombinedMapView() {
           setUserLocation([position.coords.longitude, position.coords.latitude]);
         },
         () => {
-          // Default location Bogor/Cibinong if denied
+          
           setUserLocation([106.8529, -6.4807]);
         }
       );
@@ -115,7 +115,7 @@ export function CombinedMapView() {
           setLocating(false);
         },
         () => {
-          // Fallback: pan to existing userLocation if available
+          
           if (userLocation) {
             mapRef.current?.flyTo({ center: userLocation, zoom: 14, duration: 1500 });
           }
@@ -189,7 +189,7 @@ export function CombinedMapView() {
     loadData();
   }, []);
 
-  // Filtering & sorting logic
+  
   const filtered = useMemo(() => {
     return poskoList
       .filter((p) => {
@@ -221,7 +221,7 @@ export function CombinedMapView() {
     return poskoList.find((p) => p.id === selectedPoskoId) || null;
   }, [poskoList, selectedPoskoId]);
 
-  // Calculate route via OSRM when selectedPosko or userLocation changes
+  
   useEffect(() => {
     if (!userLocation || !selectedPosko) {
       setRouteInfo(null);
@@ -235,7 +235,7 @@ export function CombinedMapView() {
       if (route) {
         setRouteInfo(route);
       } else {
-        // Fallback to haversine if OSRM fails
+        
         const R = 6371;
         const dLat = ((posLat - userLocation[1]) * Math.PI) / 180;
         const dLon = ((posLng - userLocation[0]) * Math.PI) / 180;
@@ -268,7 +268,7 @@ export function CombinedMapView() {
 
       <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 flex flex-col gap-6">
         
-        {/* Header & Stats Container */}
+        {}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
           <div className="space-y-3 max-w-2xl">
             <h1 className="text-3xl md:text-4xl font-black tracking-tight font-heading leading-tight text-slate-900">
@@ -279,7 +279,7 @@ export function CombinedMapView() {
             </p>
           </div>
 
-          {/* Minimalist Floating Stats */}
+          {}
           <div className="flex flex-wrap gap-4 items-center flex-shrink-0">
             <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-3 rounded-2xl">
               <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
@@ -319,7 +319,7 @@ export function CombinedMapView() {
           </div>
         </div>
 
-        {/* TOP SECTION: Full Width Map */}
+        {}
         <div className="w-full h-[500px] md:h-[600px] rounded-[2rem] overflow-hidden border border-slate-200 shadow-md relative bg-slate-100">
           <Map
             theme="light"
@@ -332,7 +332,7 @@ export function CombinedMapView() {
           >
             <MapControls position="bottom-right" showZoom showCompass />
 
-            {/* GPS User Marker */}
+            {}
             {userLocation && (
               <MapMarker
                 longitude={userLocation[0]}
@@ -349,7 +349,7 @@ export function CombinedMapView() {
               </MapMarker>
             )}
 
-            {/* Real Route via OSRM */}
+            {}
             {routeInfo?.coordinates && routeInfo.coordinates.length >= 2 && (
               <MapRoute
                 coordinates={routeInfo.coordinates}
@@ -359,7 +359,7 @@ export function CombinedMapView() {
               />
             )}
 
-            {/* GPS Saya Button - floating over map */}
+            {}
             <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
               <button
                 onClick={centerOnUserLocation}
@@ -423,12 +423,12 @@ export function CombinedMapView() {
                     </div>
                   </MarkerContent>
 
-                  {/* MarkerTooltip removed based on user request. Only MapPopup will be used. */}
+                  {}
                 </MapMarker>
               );
             })}
 
-            {/* Popup Info Box (Triggered on click) */}
+            {}
             {selectedPosko && (
               <MapPopup
                 longitude={selectedPosko.lng || 106.8529}
@@ -473,7 +473,7 @@ export function CombinedMapView() {
                     </div>
                   )}
 
-                  {/* Route & Jarak Info */}
+                  {}
                   {routeInfo && (
                     <div className="mt-2 mb-4 p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] space-y-1 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between">
@@ -500,7 +500,7 @@ export function CombinedMapView() {
             )}
           </Map>
 
-          {/* Floating Map Legend */}
+          {}
           <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-4 z-10 shadow-lg pointer-events-none">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">Legenda Peta</span>
             <div className="space-y-2.5">
@@ -524,10 +524,10 @@ export function CombinedMapView() {
           </div>
         </div>
 
-        {/* BOTTOM SECTION: Search, Filters & List */}
+        {}
         <div className="flex flex-col gap-6 mt-4">
           
-          {/* Controls Bar */}
+          {}
           <div className="bg-white p-4 md:p-5 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-4">
             <div className="relative w-full md:w-96 flex-shrink-0">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -577,7 +577,7 @@ export function CombinedMapView() {
             </div>
           </div>
 
-          {/* Grid of Cards */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filtered.length === 0 ? (
               <div className="col-span-full bg-white border border-dashed border-slate-200 rounded-[2rem] p-16 text-center flex flex-col items-center">
@@ -602,7 +602,7 @@ export function CombinedMapView() {
                     )}
                   >
                     <div className="relative w-full h-[140px] bg-slate-100 overflow-hidden">
-                      {/* Mini Map Preview relative to posko coordinate */}
+                      {}
                       <div className="absolute inset-0 pointer-events-none">
                         <Map
                           theme="light"
@@ -630,7 +630,7 @@ export function CombinedMapView() {
                         </Map>
                       </div>
 
-                      {/* Badge overlay */}
+                      {}
                       <div className="absolute top-4 left-4 z-10">
                         {isRelawan ? (
                           <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full border shadow-sm backdrop-blur-md bg-white/95 text-blue-700 border-blue-200/60 uppercase tracking-wider">

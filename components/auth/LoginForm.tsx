@@ -66,7 +66,7 @@ export function LoginForm() {
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
       <div className="flex flex-col">
-        {/* Logo */}
+        {}
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-sm">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -76,7 +76,7 @@ export function LoginForm() {
           <span className="text-lg font-bold tracking-tight text-navy-800">tepatsalur</span>
         </div>
 
-        {/* Header */}
+        {}
         <div className="mt-8 space-y-1.5">
           <h1 className="text-[21px] font-bold tracking-tight text-navy-800">Sign in</h1>
           <p className="text-sm text-ink-500">
@@ -84,7 +84,7 @@ export function LoginForm() {
           </p>
         </div>
 
-        {/* Form */}
+        {}
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-medium text-navy-700">Email</label>
@@ -101,9 +101,9 @@ export function LoginForm() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="password" className="text-sm font-medium text-navy-700">Password</label>
-              {/* <Link href="/forgot-password" className="text-xs font-medium text-blue-600 hover:text-blue-700">
-                Lupa password?
-              </Link> */}
+              {
+
+}
             </div>
             <div className="relative">
               <input
@@ -140,7 +140,7 @@ export function LoginForm() {
           <span className="text-xs text-ink-400">atau</span>
           <div className="h-px flex-1 bg-ink-200" />
         </div>
-        {/* <GoogleAuthButton mode="login" requestedRole={role} /> */}
+        {}
         <p className="mt-6 text-center text-sm text-ink-500">
           Belum punya akun?{" "}
           <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">

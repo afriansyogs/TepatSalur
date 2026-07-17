@@ -185,8 +185,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
 
       if (newItems.length > 0) {
-        // AI Voice input might just append needs or we should probably just insert them.
-        // Usually voice input is additive.
+        
+        
         const { error: insertError } = await supabase
           .from("posko_kebutuhan")
           .insert(newItems);
