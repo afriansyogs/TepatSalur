@@ -236,7 +236,7 @@ export function RegisterForm() {
           <div className="h-px flex-1 bg-ink-200" />
         </div>
 
-        <GoogleAuthButton mode="signup" requestedRole={roleKey} />
+        {/* <GoogleAuthButton mode="signup" requestedRole={roleKey} /> */}
 
         <p className="mt-6 text-center text-sm text-ink-500">
           Sudah punya akun?{" "}
