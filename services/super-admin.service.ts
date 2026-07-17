@@ -63,6 +63,21 @@ export const superAdminService = {
     return json as LocationsResponse;
   },
 
+  getLocationDetails: async (type: "posko" | "inventory", id: string): Promise<{ success: boolean; data?: any; error?: string }> => {
+    const res = await fetch(`/api/super-admin/locations/${type}/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Gagal mengambil detail lokasi");
+    }
+    return json;
+  },
+
   updateInventoryStock: async (id: string, payload: UpdateInventoryPayload): Promise<{ success: boolean; error?: string }> => {
     const res = await fetch(`/api/super-admin/locations/inventory/${id}`, {
       method: "PATCH",

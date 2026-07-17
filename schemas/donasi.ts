@@ -34,7 +34,7 @@ export const donasiSchema = z
 
 export type DonasiValues = z.infer<typeof donasiSchema>;
 
-// Production Schema (New 12-table DB model)
+
 export const donasiItemSchema = z.object({
   itemName: z.string().min(1, "Nama barang wajib diisi"),
   category: z.enum(["MAKANAN", "PAKAIAN", "OBAT", "LAINNYA"]),

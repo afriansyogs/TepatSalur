@@ -2,15 +2,15 @@
 
 import { useEffect, useRef } from "react";
 
-/**
- * Attaches an IntersectionObserver to the returned ref.
- * When the element enters the viewport, class `in-view` is added
- * (triggers CSS animations defined in globals.css).
- *
- * Usage:
- *   const ref = useReveal();
- *   <div ref={ref} className="reveal delay-200">...</div>
- */
+
+
+
+
+
+
+
+
+
 export function useReveal<T extends HTMLElement = HTMLDivElement>(
   threshold = 0.15
 ) {
@@ -24,7 +24,7 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(
       ([entry]) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("in-view");
-          observer.unobserve(entry.target); // fire once
+          observer.unobserve(entry.target); 
         }
       },
       { threshold }

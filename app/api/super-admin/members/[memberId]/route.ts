@@ -68,7 +68,7 @@ export async function PATCH(
 
     const { status, assignmentType, poskoId, inventoryLocationId } = parsedBody.data;
 
-    // Buat admin client untuk membypass RLS
+    
     const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
       ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
       : supabase;

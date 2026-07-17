@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Home } from "lucide-react";
 
+import { createClient } from "@/lib/supabase/client";
+
 type MenuItem = {
   id: string;
   label: string;
@@ -23,26 +25,30 @@ type MenuItem = {
 };
 
 const allMenuItems: MenuItem[] = [
-  // Super Admin menus
-  { id: "manage-basecamp",  label: "Manage Basecamp",  icon: Warehouse,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-basecamp" },
-  { id: "tambah-posko",     label: "Tambah Posko",     icon: MapPinPlus,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/tambah-posko" },
+  
+  { id: "manage-basecamp",  label: "Manage Posko & Basecamp",  icon: Warehouse,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-basecamp" },
+  { id: "tambah-posko",     label: "Add Posko/Basecamp",     icon: MapPinPlus,      roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/tambah-posko" },
   { id: "manage-member",    label: "Manage Member",     icon: UserPlus,        roles: ["super_admin"], section: "Super Admin", href: "/dashboard/super-admin/manage-member" },
 
-  // Relawan Posko menus
-  { id: "manajemen-posko",  label: "Manajemen Posko",  icon: Tent,            roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-posko" },
-  { id: "manajemen-bantuan",label: "Manajemen Bantuan", icon: Package,         roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-bantuan" },
-  { id: "input-suara",     label: "Input Suara AI",    icon: Mic,             roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/input-suara" },
-  { id: "distribusi",      label: "Distribusi AI",     icon: Truck,           roles: ["relawan"],     section: "Relawan Posko", href: "/dashboard/relawan/distribusi" },
+  
+  { id: "manajemen-posko",  label: "Manajemen Posko",  icon: Tent,            roles: ["relawan_posko"],     section: "Relawan Posko", href: "/dashboard/relawan/manajemen-posko" },
+  { id: "input-suara",     label: "Input Suara AI",    icon: Mic,             roles: ["relawan_posko"],     section: "Relawan Posko", href: "/dashboard/relawan/input-suara" },
 
-  // Donatur menus
+  
+  { id: "manajemen-inventory",  label: "Manajemen Inventory",  icon: Package,            roles: ["relawan_inventory"],     section: "Relawan Inventory", href: "/dashboard/relawan/manajemen-bantuan" },
+  { id: "manajemen-distribusi", label: "Manajemen Distribusi", icon: Truck,              roles: ["relawan_inventory"],     section: "Relawan Inventory", href: "/dashboard/relawan/distribusi" },
+
+  
   { id: "buat-donasi",      label: "Donasi Baru",       icon: MapPinPlus,      roles: ["donatur"],     section: "Donatur", href: "/dashboard/donatur/buat-donasi" },
   { id: "tracking-bantuan", label: "Tracking Bantuan",  icon: Truck,           roles: ["donatur"],     section: "Donatur", href: "/dashboard/donatur/tracking-bantuan" },
 ];
 
 const roleConfig: Record<string, { label: string; color: string; defaultPath: string }> = {
   super_admin: { label: "Super Admin", color: "text-amber-400", defaultPath: "/dashboard/super-admin/manage-basecamp" },
-  relawan:     { label: "Relawan",     color: "text-blue-400",  defaultPath: "/dashboard/relawan/manajemen-posko" },
-  donatur:     { label: "Donatur",     color: "text-emerald-400", defaultPath: "/dashboard/donatur/buat-donasi" },
+  relawan_posko: { label: "Relawan Posko", color: "text-blue-400", defaultPath: "/dashboard/relawan/manajemen-posko" },
+  relawan_inventory: { label: "Relawan Inventory", color: "text-indigo-400", defaultPath: "/dashboard/relawan/manajemen-bantuan" },
+  relawan: { label: "Relawan", color: "text-slate-400", defaultPath: "/dashboard" }, 
+  donatur: { label: "Donatur", color: "text-emerald-400", defaultPath: "/dashboard/donatur/buat-donasi" },
 };
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -64,11 +70,27 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         }
         setUser(currentUser);
         const mappedRole = currentUser.role.toLowerCase();
-        setCurrentRole(mappedRole);
+        let finalRole = mappedRole;
+
+        if (mappedRole === "relawan") {
+          const supabase = createClient();
+          const { data: assignment } = await supabase
+            .from("relawan_assignments")
+            .select("assignment_type")
+            .eq("user_id", currentUser.id)
+            .eq("is_active", true)
+            .single();
+            
+          if (assignment) {
+            finalRole = assignment.assignment_type === "POSKO" ? "relawan_posko" : "relawan_inventory";
+          }
+        }
+
+        setCurrentRole(finalRole);
         
-        // Redirect if on root dashboard or default role route
+        
         if (pathname === "/dashboard" || pathname === `/dashboard/${mappedRole}`) {
-           router.push(roleConfig[mappedRole]?.defaultPath || "/");
+           router.push(roleConfig[finalRole]?.defaultPath || "/");
         }
       } catch (err) {
         console.error("Dashboard auth error:", err);
@@ -111,13 +133,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar */}
+      {}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 border-r border-slate-800 transform transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 h-full text-white",
         isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0",
         isMinimized ? "lg:w-20" : "lg:w-64"
       )}>
-        {/* Top: Logo & Toggle */}
+        {}
         <div className="flex items-center justify-between p-4 h-16 border-b border-slate-800">
           <Link href="/" className={cn("flex items-center gap-2.5 overflow-hidden transition-all", isMinimized ? "w-0 opacity-0 hidden" : "w-auto opacity-100")}>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-sm flex-shrink-0">
@@ -144,7 +166,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        {/* Navigation Menu */}
+        {}
         <div className="flex-1 overflow-y-auto py-4 px-3 scrollbar-hide">
           {sections.map((section) => (
             <div key={section} className="mb-4">
@@ -196,7 +218,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Bottom: User Profile & Logout */}
+        {}
         <div className="p-4 border-t border-slate-800">
           <div className={cn("flex items-center bg-slate-800/50 p-2 rounded-2xl border border-slate-700/50 transition-all overflow-hidden", isMinimized ? "justify-center" : "gap-3")}>
             <div className="w-10 h-10 rounded-full bg-slate-700 border border-slate-600 overflow-hidden flex-shrink-0">
@@ -231,7 +253,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         <div className="lg:hidden bg-white border-b border-slate-200 px-4 h-16 flex items-center justify-between sticky top-0 z-30">
           <Link href="/" className="flex items-center gap-2">

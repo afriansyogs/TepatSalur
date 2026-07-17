@@ -1,81 +1,76 @@
-export type PoskoType = "bencana" | "relawan";
-export type UrgencyLevel = "kritis" | "siaga" | "aman";
-
-export interface MapMarkerData {
-  id: string;
-  type: PoskoType;
-  name: string;
-  location: [number, number]; // [longitude, latitude]
-  urgency?: UrgencyLevel;
-  refugeesCount?: number;
-  needs?: string[];
-  description?: string;
-}
-
-// Data dummy (seolah-olah dari API)
-const dummyData: MapMarkerData[] = [
-  // Mark Relawan (Hub)
-  {
-    id: "hub-1",
-    type: "relawan",
-    name: "Basecamp Relawan Pusat Jabar",
-    location: [107.6191, -6.9175], // Bandung
-    description: "Hub distribusi utama untuk wilayah Jawa Barat.",
-  },
-  {
-    id: "hub-2",
-    type: "relawan",
-    name: "Posko Relawan Garut",
-    location: [107.9087, -7.2279], // Garut
-    description: "Basecamp koordinasi logistik area Garut dan sekitarnya.",
-  },
-
-  // Mark Posko Bencana
-  {
-    id: "posko-1",
-    type: "bencana",
-    name: "Posko Harapan Baru",
-    location: [107.138, -6.816], // Cianjur area
-    urgency: "kritis",
-    refugeesCount: 350,
-    needs: ["Tenda", "Obat-obatan", "Air Bersih", "Selimut"],
-  },
-  {
-    id: "posko-2",
-    type: "bencana",
-    name: "Posko Sejahtera",
-    location: [107.95, -7.2], // Garut area
-    urgency: "siaga",
-    refugeesCount: 120,
-    needs: ["Pakaian Layak", "Sembako", "Susu Bayi"],
-  },
-  {
-    id: "posko-3",
-    type: "bencana",
-    name: "Posko Aman Damai",
-    location: [107.63, -6.95], // Bandung area
-    urgency: "aman",
-    refugeesCount: 80,
-    needs: ["Alat Kebersihan"],
-  },
-  {
-    id: "posko-4",
-    type: "bencana",
-    name: "Pengungsian Darurat Sukabumi",
-    location: [106.9237, -6.9277], // Sukabumi
-    urgency: "kritis",
-    refugeesCount: 500,
-    needs: ["Genset", "Makanan Siap Saji", "Obat-obatan"],
-  },
-];
+import type { MapResponse, StatsResponse, PoskoDetailResponse, InventoryDetailResponse } from "@/types/map";
 
 export const mapService = {
-  getMapMarkers: async (): Promise<MapMarkerData[]> => {
-    // Simulasi delay fetch API
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(dummyData);
-      }, 500);
-    });
+  getStats: async (): Promise<StatsResponse> => {
+    const res = await fetch("/api/stats");
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Gagal mengambil data statistik");
+    }
+    return json.data as StatsResponse;
+  },
+
+  getMapData: async (filter: "all" | "posko" | "inventory" = "all"): Promise<MapResponse> => {
+    const url = new URL("/api/map", window.location.origin);
+    url.searchParams.set("filter", filter);
+
+    const res = await fetch(url.toString());
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Gagal mengambil data peta");
+    }
+    return json.data as MapResponse;
+  },
+
+  getPoskoDetail: async (id: string): Promise<PoskoDetailResponse> => {
+    const res = await fetch(`/api/map/posko/${id}`);
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Gagal mengambil detail posko");
+    }
+    return json.data as PoskoDetailResponse;
+  },
+
+  getInventoryDetail: async (id: string): Promise<InventoryDetailResponse> => {
+    const res = await fetch(`/api/map/inventory/${id}`);
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Gagal mengambil detail gudang");
+    }
+    return json.data as InventoryDetailResponse;
+  },
+
+  getRoute: async (
+    origin: [number, number],
+    destination: [number, number]
+  ): Promise<{
+    coordinates: [number, number][];
+    distance: string;
+    duration: string;
+  } | null> => {
+    try {
+      const res = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${origin[0]},${origin[1]};${destination[0]},${destination[1]}?geometries=geojson&overview=full`,
+        { signal: AbortSignal.timeout(10000) }
+      );
+      const json = await res.json();
+      if (json.code !== "Ok" || !json.routes?.length) return null;
+
+      const route = json.routes[0];
+      const coords = route.geometry.coordinates;
+      const km = route.distance / 1000;
+      const min = Math.round(route.duration / 60);
+
+      return {
+        coordinates: coords,
+        distance: `${km.toFixed(1)} km`,
+        duration:
+          min >= 60
+            ? `${Math.floor(min / 60)} jam ${min % 60} menit`
+            : `${min} menit`,
+      };
+    } catch {
+      return null;
+    }
   },
 };

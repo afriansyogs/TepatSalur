@@ -40,7 +40,6 @@ export async function POST(req: Request) {
     }
 
     if (!selectData) {
-      // Jika profil tidak ditemukan, coba insert langsung (kemungkinan trigger auth -> public.users tidak ada atau belum terpanggil)
       const { error: insertError } = await supabase
         .from("users")
         .insert({

@@ -26,7 +26,7 @@ import { authService } from "@/services/auth.service";
 import { Map, MapMarker, MarkerContent, MapControls, MarkerTooltip, MapRoute } from "@/components/ui/map";
 import { cn } from "@/lib/utils";
 
-// Custom local schema that includes "unit" so zodResolver does not strip it
+
 const localDonasiFormSchema = z.object({
   items: z.array(
     z.object({
@@ -44,9 +44,9 @@ const localDonasiFormSchema = z.object({
 
 type LocalFormValues = z.infer<typeof localDonasiFormSchema>;
 
-// Haversine distance calculator helper
+
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in kilometers
+  const R = 6371; 
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -77,7 +77,7 @@ interface SuccessScreenProps {
 }
 
 function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
-  // Dynamically load canvas-confetti from CDN
+  
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js";
@@ -85,14 +85,14 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
     script.onload = () => {
       const confettiLib = (window as any).confetti;
       if (confettiLib) {
-        // First blast
+        
         confettiLib({
           particleCount: 120,
           spread: 80,
           origin: { y: 0.55 }
         });
 
-        // Second blasts
+        
         setTimeout(() => {
           confettiLib({
             particleCount: 60,
@@ -135,10 +135,10 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
 
   return (
     <div className="max-w-xl mx-auto py-6 relative">
-      {/* Receipt paper style container */}
+      {}
       <div className="bg-[#fcfbf4] border border-[#dcd6b8] rounded-3xl shadow-xl overflow-hidden relative font-mono text-slate-700 animate-in fade-in zoom-in-95 duration-200">
 
-        {/* Sobekan Kertas Atas (CSS styling) */}
+        {}
         <div className="h-2.5 bg-[#fcfbf4] w-full flex justify-between overflow-hidden opacity-90 select-none">
           {Array.from({ length: 30 }).map((_, i) => (
             <div key={i} className="w-4 h-4 bg-slate-100 rounded-full -mt-2.5 shrink-0 border border-slate-200" />
@@ -146,7 +146,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
         </div>
 
         <div className="p-8 space-y-6">
-          {/* Header Receipt */}
+          {}
           <div className="text-center space-y-2">
             <div className="mx-auto rounded-full bg-emerald-100 text-emerald-600 w-14 h-14 flex items-center justify-center">
               <CheckCircle2 className="h-9 w-9" />
@@ -162,7 +162,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
             </div>
           </div>
 
-          {/* Barcode & TRX info */}
+          {}
           <div className="border-y border-dashed border-[#dcd6b8] py-3 text-center space-y-1">
             <p className="text-xs font-bold tracking-widest text-slate-900">{transactionCode}</p>
             <p className="text-[9px] text-slate-500 uppercase">
@@ -170,7 +170,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
             </p>
           </div>
 
-          {/* Detail Struk */}
+          {}
           <div className="space-y-4 text-[11px] leading-relaxed">
             <div className="flex justify-between items-start">
               <span className="text-slate-400 shrink-0 uppercase tracking-wider">DONATUR:</span>
@@ -184,7 +184,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
               </span>
             </div>
 
-            {/* Separator */}
+            {}
             <div className="text-slate-300 select-none tracking-widest border-t border-dashed border-[#e3dec8]" />
 
             <div className="space-y-2">
@@ -205,7 +205,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
               </div>
             </div>
 
-            {/* Separator */}
+            {}
             <div className="text-slate-300 select-none tracking-widest border-t border-dashed border-[#e3dec8]" />
 
             <div className="flex justify-between items-center font-bold text-slate-900">
@@ -213,7 +213,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
               <span>{totalItems} UNIT</span>
             </div>
 
-            {/* Separator */}
+            {}
             <div className="text-slate-300 select-none tracking-widest border-t border-dashed border-[#e3dec8]" />
 
             <div className="space-y-2">
@@ -232,7 +232,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
             </div>
           </div>
 
-          {/* Stempel Logistik Lunas */}
+          {}
           <div className="flex justify-center items-center py-4 select-none">
             <div className="border-4 border-emerald-600/40 rounded-xl px-6 py-1.5 text-emerald-600/60 font-black text-sm uppercase tracking-widest rotate-[-5deg] scale-105 shadow-2xs bg-emerald-50/10">
               DONASI DIAJUKAN
@@ -246,7 +246,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
           </div>
         </div>
 
-        {/* Sobekan Kertas Bawah (CSS styling) */}
+        {}
         <div className="h-3 bg-[#fcfbf4] w-full flex justify-between overflow-hidden opacity-90 select-none">
           {Array.from({ length: 30 }).map((_, i) => (
             <div key={i} className="w-4 h-4 bg-slate-100 rounded-full mt-1 shrink-0 border border-slate-200" />
@@ -254,7 +254,7 @@ function DonasiSukses({ data, onReset, router }: SuccessScreenProps) {
         </div>
       </div>
 
-      {/* Navigation Buttons outside paper */}
+      {}
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <button
           onClick={() => router.push("/dashboard/donatur/tracking-bantuan")}
@@ -281,7 +281,7 @@ export default function BuatDonasiPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [warehouses, setWarehouses] = useState<any[]>([]);
 
-  // Custom states for options
+  
   const [warehouseSelectionMode, setWarehouseSelectionMode] = useState<"auto" | "manual">("auto");
   const [selectedManualWarehouseId, setSelectedManualWarehouseId] = useState<string>("");
 
@@ -289,11 +289,11 @@ export default function BuatDonasiPage() {
   const [isLocating, setIsLocating] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
 
-  // Real OSRM Road Route coordinates
+  
   const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
   const [routeInfo, setRouteInfo] = useState<{ distanceKm: number; durationMin: number } | null>(null);
 
-  // Success screen state
+  
   const [successData, setSuccessData] = useState<{
     donationIds: string[];
     recommendedInventory: {
@@ -307,7 +307,7 @@ export default function BuatDonasiPage() {
     items: { itemName: string; qtyDonated: number; category: string; unit: string }[];
   } | null>(null);
 
-  // Form Setup using local schema that includes "unit"
+  
   const {
     register,
     control,
@@ -321,7 +321,7 @@ export default function BuatDonasiPage() {
     mode: "onChange",
     defaultValues: {
       items: [{ itemName: "", category: "MAKANAN" as const, qtyDonated: 1, unit: "pcs" as const }],
-      latitude: -6.9175, // Default Bandung
+      latitude: -6.9175, 
       longitude: 107.6191,
       alamatPickup: "",
       recommendedInventoryId: "",
@@ -338,7 +338,7 @@ export default function BuatDonasiPage() {
   const watchLongitude = watch("longitude");
   const watchAlamatPickup = watch("alamatPickup");
 
-  // Check user role on mount
+  
   useEffect(() => {
     async function verifyDonaturRole() {
       try {
@@ -354,7 +354,7 @@ export default function BuatDonasiPage() {
     verifyDonaturRole();
   }, [router]);
 
-  // Fetch warehouses
+  
   useEffect(() => {
     async function fetchWarehouses() {
       try {
@@ -370,7 +370,7 @@ export default function BuatDonasiPage() {
     fetchWarehouses();
   }, []);
 
-  // Recalculate closest warehouse or apply manual selection
+  
   useEffect(() => {
     if (warehouses.length === 0 || !watchLatitude || !watchLongitude) return;
 
@@ -384,7 +384,7 @@ export default function BuatDonasiPage() {
       }
     }
 
-    // Auto Mode (Closest)
+    
     let closest: any = null;
     let minDistance = Infinity;
 
@@ -404,7 +404,7 @@ export default function BuatDonasiPage() {
     }
   }, [watchLatitude, watchLongitude, warehouses, warehouseSelectionMode, selectedManualWarehouseId, setValue]);
 
-  // Fetch real street road route coordinates and info from OSRM dynamic API
+  
   useEffect(() => {
     if (!closestWarehouse || !watchLatitude || !watchLongitude) return;
 
@@ -422,7 +422,7 @@ export default function BuatDonasiPage() {
             durationMin: Math.max(1, Math.round(route.duration / 60))
           });
         } else {
-          // Fallback line
+          
           setRouteCoords([
             [watchLongitude, watchLatitude],
             [closestWarehouse.longitude, closestWarehouse.latitude]
@@ -430,7 +430,7 @@ export default function BuatDonasiPage() {
           const fallbackDistance = Number(calculateDistance(watchLatitude, watchLongitude, closestWarehouse.latitude, closestWarehouse.longitude).toFixed(2));
           setRouteInfo({
             distanceKm: fallbackDistance,
-            durationMin: Math.max(1, Math.round(fallbackDistance * 2)) // Estimasi 2 menit per km
+            durationMin: Math.max(1, Math.round(fallbackDistance * 2)) 
           });
         }
       } catch (e) {
@@ -450,7 +450,7 @@ export default function BuatDonasiPage() {
     fetchRealRoute();
   }, [watchLatitude, watchLongitude, closestWarehouse]);
 
-  // Geolocation trigger
+  
   const handleLocateMe = () => {
     if (!("geolocation" in navigator)) {
       setGpsError("Geolokasi tidak didukung oleh browser Anda.");
@@ -481,7 +481,7 @@ export default function BuatDonasiPage() {
     setWarehouseSelectionMode("manual");
   };
 
-  // Next step validation
+  
   const handleNextToStep2 = async () => {
     const isStep1Valid = await trigger("items");
     if (!isStep1Valid) {
@@ -496,7 +496,7 @@ export default function BuatDonasiPage() {
     setLoading(true);
     setErrorMsg("");
 
-    // Combine item name with selected unit: e.g. "Beras (kg)"
+    
     const mappedItems = data.items.map((item) => ({
       itemName: `${item.itemName} (${item.unit})`,
       category: item.category,
@@ -548,7 +548,7 @@ export default function BuatDonasiPage() {
         </p>
       </div>
 
-      {/* Progress Wizard */}
+      {}
       <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-2xl p-4">
         {[
           { label: "Barang Donasi", nr: 1 },
@@ -583,10 +583,10 @@ export default function BuatDonasiPage() {
         ))}
       </div>
 
-      {/* Main Form container */}
+      {}
       <form onSubmit={handleSubmit(onSubmit)} className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
 
-        {/* STEP 1: ITEMS INPUT */}
+        {}
         {step === 1 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
@@ -683,13 +683,13 @@ export default function BuatDonasiPage() {
           </div>
         )}
 
-        {/* STEP 2: RUTE & LOKASI */}
+        {}
         {step === 2 && (
           <div className="space-y-6">
             <h3 className="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">Rute Pengantaran & Lokasi</h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Map & Coordinates selector */}
+              {}
               <div className="lg:col-span-7 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
@@ -713,7 +713,7 @@ export default function BuatDonasiPage() {
                   </p>
                 )}
 
-                {/* Map Area */}
+                {}
                 <div className="w-full h-[320px] rounded-2xl overflow-hidden border border-slate-200 relative bg-slate-50">
                   <Map
                     theme="light"
@@ -724,7 +724,7 @@ export default function BuatDonasiPage() {
                   >
                     <MapControls position="bottom-right" showZoom showLocate showCompass />
 
-                    {/* Real road route coordinates fetched from OSRM */}
+                    {}
                     {routeCoords.length >= 2 && (
                       <MapRoute
                         coordinates={routeCoords}
@@ -733,7 +733,7 @@ export default function BuatDonasiPage() {
                       />
                     )}
 
-                    {/* User Current Draggable Pin */}
+                    {}
                     <MapMarker
                       longitude={watchLongitude}
                       latitude={watchLatitude}
@@ -752,7 +752,7 @@ export default function BuatDonasiPage() {
                       </MarkerTooltip>
                     </MapMarker>
 
-                    {/* Warehouses Pins */}
+                    {}
                     {warehouses
                       .filter(
                         (wh) =>
@@ -793,7 +793,7 @@ export default function BuatDonasiPage() {
                   </Map>
                 </div>
 
-                {/* Manual coordinate inputs */}
+                {}
                 <div className="grid grid-cols-2 gap-3 bg-slate-50 border border-slate-100 p-4 rounded-2xl">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Latitude</label>
@@ -818,9 +818,9 @@ export default function BuatDonasiPage() {
                 </div>
               </div>
 
-              {/* Address details & Recommended Warehouse */}
+              {}
               <div className="lg:col-span-5 space-y-4">
-                {/* Warehouse selector mode choice */}
+                {}
                 <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Hub Penerima Logistik</span>
@@ -875,7 +875,7 @@ export default function BuatDonasiPage() {
                   )}
                 </div>
 
-                {/* Warehouse recommendation feedback */}
+                {}
                 {closestWarehouse ? (
                   <div className="bg-blue-50/70 border border-blue-100 rounded-2xl p-5 space-y-3">
                     <div className="flex items-center gap-2 text-blue-900 font-black text-sm">
@@ -907,7 +907,7 @@ export default function BuatDonasiPage() {
                       )}
                     </div>
 
-                    {/* Delivery Method Instruction Box */}
+                    {}
                     <div className="bg-white/90 border border-blue-100 rounded-xl p-3 flex gap-2 text-[11px] text-blue-800">
                       <HelpCircle className="w-4 h-4 shrink-0 text-blue-500 mt-0.5" />
                       <p>Silakan antarkan langsung barang donasi Anda secara mandiri menuju alamat Hub Logistik di atas.</p>
@@ -946,7 +946,7 @@ export default function BuatDonasiPage() {
           </div>
         )}
 
-        {/* STEP 3: CONFIRM & SUBMIT */}
+        {}
         {step === 3 && (
           <div className="space-y-6">
             <h3 className="font-bold text-slate-800 text-base border-b border-slate-100 pb-3">Ringkasan Pengajuan Donasi</h3>

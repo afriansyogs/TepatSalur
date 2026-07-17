@@ -113,7 +113,7 @@ export function Hero() {
         <h1
           data-aos="fade-up"
           data-aos-delay="100"
-          className="text-[46px] sm:text-[62px] leading-[1.05] font-extrabold tracking-[-0.03em] text-ink-900 font-heading mb-6 max-w-[780px]"
+          className="text-[32px] sm:text-[48px] md:text-[62px] leading-[1.05] font-extrabold tracking-[-0.03em] text-ink-900 font-heading mb-6 max-w-[780px]"
         >
           Satu tindakanmu{" "}
           <span className="text-blue-600">bisa menyelamatkan</span>
@@ -124,7 +124,7 @@ export function Hero() {
         <p
           data-aos="fade-up"
           data-aos-delay="200"
-          className="text-[16px] sm:text-[17px] text-ink-500 leading-[1.7] mb-10 max-w-[540px]"
+          className="text-[15px] sm:text-[17px] text-ink-500 leading-[1.7] mb-10 max-w-[540px]"
         >
           TepatSalur memastikan bantuanmu tiba di tangan yang paling membutuhkan — bukan numpuk di gudang yang salah. Bergabunglah sekarang, bersama kita bisa.
         </p>
@@ -132,18 +132,18 @@ export function Hero() {
         <div
           data-aos="fade-up"
           data-aos-delay="300"
-          className="flex flex-wrap gap-3 justify-center mb-14"
+          className="flex flex-col sm:flex-row gap-3 justify-center mb-14 w-full sm:w-auto px-4 sm:px-0"
         >
           <a
             href="/register?role=donatur"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[14.5px] py-3.5 px-8 rounded-xl transition-all shadow-[0_8px_24px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_32px_rgba(37,99,235,0.5)] hover:-translate-y-0.5"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[14.5px] py-3.5 px-8 rounded-xl transition-all shadow-[0_8px_24px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_32px_rgba(37,99,235,0.5)] hover:-translate-y-0.5 animate-bounce-short"
           >
             Saya Ingin Berdonasi
             <span className="text-[18px] leading-none">→</span>
           </a>
           <a
             href="/register?role=relawan"
-            className="inline-flex items-center gap-2 text-ink-700 hover:text-blue-600 font-bold text-[14.5px] py-3.5 px-8 rounded-xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/80 backdrop-blur-sm transition-all bg-white/70"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-ink-700 hover:text-blue-600 font-bold text-[14.5px] py-3.5 px-8 rounded-xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/80 backdrop-blur-sm transition-all bg-white/70"
           >
             Daftar sebagai Relawan
           </a>

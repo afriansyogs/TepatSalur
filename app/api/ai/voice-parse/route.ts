@@ -4,12 +4,18 @@ import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { voiceParseResultSchema } from "@/schemas/ai";
 import { VoiceParseResult } from "@/types/ai";
 
-const TRIAGE_PROMPT = `Kamu adalah asisten pendataan bencana. Dengarkan audio berikut dan ekstrak semua informasi ke dalam format JSON.
-Aturan:
+const TRIAGE_PROMPT = `Kamu adalah asisten cerdas pendataan bencana. Dengarkan audio berikut dan ekstrak semua informasi ke dalam format JSON.
+
+TUGAS PENTING (PROAKTIF & ANALITIS):
+Selain menerjemahkan ucapan ke teks, kamu HARUS BERPIKIR SEBAGAI AHLI MEDIS DAN LOGISTIK BENCANA. Jika ada kondisi medis tertentu, demografi rentan (bayi, ibu hamil, lansia, disabilitas), atau luka-luka yang disebutkan dalam audio, TETAPI relawan tidak menyebutkan kebutuhan spesifik untuk mereka, KAMU WAJIB MENYARANKAN DAN MENAMBAHKAN KEBUTUHAN tersebut secara otomatis ke dalam array \`kebutuhan\`.
+Contoh 1: Jika relawan bilang "ada 1 orang luka bakar... butuh 2 mie instan", kamu harus memasukkan 2 mie instan (MAKANAN) DAN otomatis menambahkan "Obat Luka Bakar / Salep / Perban" (OBAT, qty: 1 atau secukupnya).
+Contoh 2: Jika ada "2 ibu hamil", otomatis tambahkan "Susu Ibu Hamil / Vitamin" (MAKANAN/OBAT, qty: 2) jika relawan lupa menyebutkannya.
+
+Aturan JSON:
 - Kembalikan HANYA JSON valid tanpa markdown, kode blok, atau teks tambahan.
-- Jika suatu metrik demografi (jumlahPengungsi, jumlahDewasa, jumlahAnak, jumlahLansia, jumlahDisabilitas, jumlahIbuHamil) atau catatanMedisDarurat TIDAK disebutkan dalam audio, set nilainya ke null atau hilangkan dari JSON. Jangan gunakan default 0 atau string kosong jika tidak disebutkan.
-- Untuk kategori kebutuhan, pilih yang paling sesuai: MAKANAN (makanan/minuman), PAKAIAN (pakaian/selimut), OBAT (obat/medis), LAINNYA (lainnya).
-- Jika tidak ada kebutuhan disebutkan, gunakan array kosong [].`;
+- Jika suatu metrik demografi (jumlahPengungsi, jumlahDewasa, jumlahAnak, jumlahLansia, jumlahDisabilitas, jumlahIbuHamil) atau catatanMedisDarurat TIDAK disebutkan dalam audio, set nilainya ke null atau hilangkan. Jangan gunakan angka 0 jika tidak disebut.
+- Untuk kategori kebutuhan, pilih yang paling sesuai: MAKANAN, PAKAIAN, OBAT, LAINNYA.
+- Jika tidak ada kebutuhan dan tidak ada kondisi khusus yang butuh saran, gunakan array kosong [].`;
 
 export async function POST(req: Request) {
   try {

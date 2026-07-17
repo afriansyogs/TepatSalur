@@ -29,7 +29,7 @@ export async function GET(request: Request) {
             createdAtStr += "Z";
           }
           const createdAtTime = new Date(createdAtStr).getTime();
-          // Use 10 minutes (600000 ms) to handle clock drift
+          
           isNewUser = Math.abs(Date.now() - createdAtTime) < 600000;
         }
         
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
           const validRoles = ["ADMIN_POSKO", "RELAWAN", "DONATUR"];
           
           if (validRoles.includes(mappedRole)) {
-            // Update if user is new, or if their current role is the default RELAWAN and they requested DONATUR
+            
             const isUpgrading = role === "RELAWAN" && mappedRole === "DONATUR";
             if (isNewUser || isUpgrading) {
               await supabase.from("users").update({ role: mappedRole }).eq("id", authData.user.id);

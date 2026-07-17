@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Dasbor Posko — TepatSalur",
 };
 
-// Mock data — replace with Supabase query in production
+
 const MOCK_POSKO: Record<string, PoskoData> = {
   "1": {
     id: "1",
@@ -80,7 +80,6 @@ interface PageProps {
 
 export default async function PoskoPage({ params }: PageProps) {
   const { id } = await params;
-  const poskoData = MOCK_POSKO[id] ?? MOCK_POSKO["1"];
 
-  return <PoskoDashboard data={poskoData} />;
+  return <PoskoDashboard poskoId={id} />;
 }

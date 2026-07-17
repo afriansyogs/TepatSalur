@@ -39,7 +39,7 @@ interface Props {
 export function SektorDemografi({ initialDemografi }: Props) {
   return (
     <section id="demografi" className="px-4 pt-6 pb-4">
-      {/* Section header */}
+      {}
       <div className="flex items-center gap-2 mb-4">
         <div className="w-1 h-6 rounded-full bg-blue-600" />
         <div>
@@ -50,7 +50,7 @@ export function SektorDemografi({ initialDemografi }: Props) {
         </div>
       </div>
 
-      {/* 2x2 stat grid */}
+      {}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <StatCard
           label="Total"
@@ -104,7 +104,7 @@ export function SektorDemografi({ initialDemografi }: Props) {
         )}
       </div>
 
-      {/* Stat summary card */}
+      {}
       <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex flex-col justify-between mb-4">
         <p className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Rasio Kelompok Rentan (Lansia, Balita, dsb.)</p>
         <div>
@@ -120,7 +120,7 @@ export function SektorDemografi({ initialDemografi }: Props) {
         </div>
       </div>
 
-      {/* Catatan medis */}
+      {}
       <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm mb-4">
         <label className="flex items-center gap-1.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider mb-2">
           <Clipboard className="w-4 h-4 text-slate-400" />

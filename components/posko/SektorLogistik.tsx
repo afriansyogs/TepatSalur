@@ -28,7 +28,7 @@ interface Props {
 export function SektorLogistik({ initialLogistik }: Props) {
   return (
     <section id="logistik" className="px-4 pt-6 pb-2">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-2 mb-4">
         <div className="w-1 h-6 rounded-full bg-amber-500" />
         <div>
@@ -39,9 +39,9 @@ export function SektorLogistik({ initialLogistik }: Props) {
         </div>
       </div>
 
-      {/* Status table */}
+      {}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        {/* Mobile: card list */}
+        {}
         <div className="divide-y divide-slate-100 sm:hidden">
           {initialLogistik.map((item) => {
             const s = deriveStatus(item);
@@ -77,7 +77,7 @@ export function SektorLogistik({ initialLogistik }: Props) {
           })}
         </div>
 
-        {/* Desktop: table */}
+        {}
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead>
@@ -131,7 +131,7 @@ export function SektorLogistik({ initialLogistik }: Props) {
         </div>
       </div>
 
-      {/* Legend */}
+      {}
       <div className="flex items-center gap-4 mt-3 px-1 flex-wrap">
         <span className="flex items-center gap-1.5 text-[11px] text-slate-400">
           <span className="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block" />

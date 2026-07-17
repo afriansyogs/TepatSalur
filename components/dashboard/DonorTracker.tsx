@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, MapPin, Loader2, ArrowRight, Calendar, Warehouse, CheckCircle, Clock, Heart, ClipboardList } from "lucide-react";
+import { Package, MapPin, Loader2, ArrowRight, Calendar, Warehouse, CheckCircle, Clock, Heart, ClipboardList, XCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { donasiService } from "@/services/donasi.service";
 import { DonationHistoryRecord } from "@/types/donasi";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 type DonationHistoryItem = {
   id: string;
@@ -15,11 +16,11 @@ type DonationHistoryItem = {
   alamatGudang: string | null;
   alamatPickup: string;
   tanggalDonasi: string;
-  status: "SUBMITTED" | "ACCEPTED" | "DELIVERED" | "UNKNOWN";
+  status: "PENDING" | "DELIVERY" | "ACCEPTED" | "REJECTED" | "UNKNOWN";
   rawDate: string;
 };
 
-// Map database categories to friendly Indonesian names
+
 const mapCategoryToFriendlyName = (category: string): string => {
   const mapping: Record<string, string> = {
     MAKANAN: "Makanan",
@@ -30,15 +31,15 @@ const mapCategoryToFriendlyName = (category: string): string => {
   return mapping[category.toUpperCase()] || category;
 };
 
-// Helper function to group individual items into bundles/donation transactions
+
 const groupDonations = (records: DonationHistoryRecord[]): DonationHistoryItem[] => {
   const groups: Record<string, DonationHistoryItem> = {};
 
   records.forEach((record) => {
-    // Group by timestamp (YYYY-MM-DDTHH:MM) and warehouse target to keep multi-item forms grouped
+    
     const timeKey = new Date(record.createdAt).toISOString().substring(0, 16);
 
-    // Clean up alamat_pickup by removing method prefixes for display: [MANDIRI] Alamat -> Alamat
+    
     const displayAlamat = record.alamatPickup.replace(/^\[(MANDIRI|JEMPUT|KURIR)\]\s*/, "");
 
     const key = `${timeKey}_${record.recommendedInventory?.id || "unknown"}_${displayAlamat}`;
@@ -55,9 +56,10 @@ const groupDonations = (records: DonationHistoryRecord[]): DonationHistoryItem[]
 
       let statusType: DonationHistoryItem["status"] = "UNKNOWN";
       const statusStr = record.status.toUpperCase();
-      if (statusStr === "SUBMITTED") statusType = "SUBMITTED";
-      else if (statusStr === "ACCEPTED" || statusStr === "APPROVED") statusType = "ACCEPTED";
-      else if (statusStr === "DELIVERED" || statusStr === "COMPLETED") statusType = "DELIVERED";
+      if (statusStr === "PENDING") statusType = "PENDING";
+      else if (statusStr === "DELIVERY") statusType = "DELIVERY";
+      else if (statusStr === "ACCEPTED") statusType = "ACCEPTED";
+      else if (statusStr === "REJECTED") statusType = "REJECTED";
 
       groups[key] = {
         id: `DON-${record.id.substring(0, 8).toUpperCase()}`,
@@ -85,31 +87,58 @@ const groupDonations = (records: DonationHistoryRecord[]): DonationHistoryItem[]
 export function DonorTracker() {
   const [donations, setDonations] = useState<DonationHistoryItem[]>([]);
   const [filteredDonations, setFilteredDonations] = useState<DonationHistoryItem[]>([]);
-  const [activeFilter, setActiveFilter] = useState<"ALL" | "SUBMITTED" | "ACCEPTED" | "DELIVERED">("ALL");
+  const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "DELIVERY" | "ACCEPTED" | "REJECTED">("ALL");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Stats calculation
+  
   const totalBundles = donations.length;
   const totalItemsCount = donations.reduce((sum, d) => sum + d.items.reduce((iSum, item) => iSum + item.qty, 0), 0);
   const uniqueGudangs = new Set(donations.map(d => d.gudangTujuan)).size;
 
-  useEffect(() => {
-    async function loadHistory() {
-      try {
-        const records = await donasiService.getDonaturDonationHistory();
-        const grouped = groupDonations(records);
-        setDonations(grouped);
-        setFilteredDonations(grouped);
-      } catch (err) {
-        console.error("Gagal memuat riwayat donasi:", err);
-      } finally {
-        setLoading(false);
-      }
+  const loadHistory = async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
+    try {
+      const records = await donasiService.getDonaturDonationHistory();
+      const grouped = groupDonations(records);
+      setDonations(grouped);
+      setFilteredDonations(grouped);
+    } catch (err) {
+      console.error("Gagal memuat riwayat donasi:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  useEffect(() => {
     loadHistory();
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("donasi-tracker-updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "donasi" },
+        () => {
+          loadHistory(true);
+        }
+      )
+      .subscribe();
+
+    
+    const interval = setInterval(() => {
+      loadHistory(true);
+    }, 3000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
-  // Handle filtering
+  
   useEffect(() => {
     if (activeFilter === "ALL") {
       setFilteredDonations(donations);
@@ -129,19 +158,29 @@ export function DonorTracker() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-slate-800">Riwayat Donasi Bantuan</h2>
           <p className="text-sm text-slate-500 mt-1">Daftar lengkap kontribusi logistik dan status penerimaan bantuan Anda.</p>
         </div>
-        <Link
-          href="/dashboard/donatur/buat-donasi"
-          className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/10"
-        >
-          <span>Donasi Baru</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => loadHistory(true)}
+            disabled={refreshing}
+            className="flex items-center justify-center p-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl transition-all disabled:opacity-50"
+            title="Refresh Status"
+          >
+            <RefreshCw className={cn("w-4 h-4 text-slate-600", refreshing && "animate-spin")} />
+          </button>
+          <Link
+            href="/dashboard/donatur/buat-donasi"
+            className="inline-flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-md shadow-blue-500/10"
+          >
+            <span>Donasi Baru</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
 
       {donations.length === 0 ? (
@@ -162,7 +201,7 @@ export function DonorTracker() {
         </div>
       ) : (
         <>
-          {/* Creative KPI Stats Cards */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4 hover:shadow-sm transition-all">
               <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
@@ -195,13 +234,14 @@ export function DonorTracker() {
             </div>
           </div>
 
-          {/* Filter Navigation Tabs */}
+          {}
           <div className="flex gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
             {[
               { id: "ALL", label: "Semua Donasi" },
-              { id: "SUBMITTED", label: "Menunggu Hub" },
+              { id: "PENDING", label: "Menunggu Konfirmasi" },
+              { id: "DELIVERY", label: "Dalam Perjalanan" },
               { id: "ACCEPTED", label: "Diterima Gudang" },
-              { id: "DELIVERED", label: "Selesai Disalurkan" }
+              { id: "REJECTED", label: "Ditolak" }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -218,7 +258,7 @@ export function DonorTracker() {
             ))}
           </div>
 
-          {/* Donation History Cards */}
+          {}
           <div className="space-y-4">
             {filteredDonations.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center bg-white border border-slate-100 rounded-2xl">
@@ -230,19 +270,23 @@ export function DonorTracker() {
                   key={donation.id}
                   className="bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-md transition-all relative overflow-hidden flex flex-col md:flex-row gap-6 justify-between items-start md:items-stretch"
                 >
-                  {/* Decorative status strip */}
+                  {}
                   <div
                     className={cn(
                       "absolute top-0 bottom-0 left-0 w-1.5",
-                      donation.status === "SUBMITTED"
+                      donation.status === "PENDING"
                         ? "bg-amber-500"
+                        : donation.status === "DELIVERY"
+                        ? "bg-blue-400"
                         : donation.status === "ACCEPTED"
-                        ? "bg-blue-500"
-                        : "bg-emerald-500"
+                        ? "bg-emerald-500"
+                        : donation.status === "REJECTED"
+                        ? "bg-rose-500"
+                        : "bg-slate-300"
                     )}
                   />
 
-                  {/* Left Side: Summary & Items */}
+                  {}
                   <div className="space-y-4 flex-1">
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">
@@ -251,22 +295,30 @@ export function DonorTracker() {
                       <span
                         className={cn(
                           "text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border",
-                          donation.status === "SUBMITTED"
+                          donation.status === "PENDING"
                             ? "bg-amber-50 text-amber-600 border-amber-200"
-                            : donation.status === "ACCEPTED"
+                            : donation.status === "DELIVERY"
                             ? "bg-blue-50 text-blue-600 border-blue-200"
-                            : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                            : donation.status === "ACCEPTED"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                            : donation.status === "REJECTED"
+                            ? "bg-rose-50 text-rose-600 border-rose-200"
+                            : "bg-slate-50 text-slate-500 border-slate-200"
                         )}
                       >
-                        {donation.status === "SUBMITTED"
+                        {donation.status === "PENDING"
                           ? "Menunggu Konfirmasi"
+                          : donation.status === "DELIVERY"
+                          ? "Dalam Perjalanan"
                           : donation.status === "ACCEPTED"
-                          ? "Diterima Hub"
-                          : "Selesai Disalurkan"}
+                          ? "Diterima Gudang"
+                          : donation.status === "REJECTED"
+                          ? "Ditolak"
+                          : "Tidak Diketahui"}
                       </span>
                     </div>
 
-                    {/* Donated Items Grid */}
+                    {}
                     <div className="flex flex-wrap gap-2">
                       {donation.items.map((item, idx) => (
                         <span
@@ -282,7 +334,7 @@ export function DonorTracker() {
                       ))}
                     </div>
 
-                    {/* Pickup details */}
+                    {}
                     <div className="space-y-1.5 text-xs text-slate-500 bg-slate-50/70 p-3 rounded-2xl border border-slate-100 pl-4">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -293,7 +345,7 @@ export function DonorTracker() {
                     </div>
                   </div>
 
-                  {/* Right Side: Log timeline & Destination Hub */}
+                  {}
                   <div className="flex flex-col justify-between items-stretch md:items-end w-full md:w-auto md:min-w-[280px] border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6">
                     <div className="space-y-3">
                       <div className="flex items-start gap-2 text-xs">
@@ -318,30 +370,43 @@ export function DonorTracker() {
                       </div>
                     </div>
 
-                    {/* Mini Check History */}
+                    {}
                     <div className="mt-4 pt-3 border-t border-slate-100/60 flex items-center justify-between text-[11px]">
                       <span className="text-slate-400 font-medium">Langkah Logistik:</span>
                       <div className="flex items-center gap-2 font-bold">
-                        <span className="flex items-center gap-0.5 text-emerald-600">
-                          <CheckCircle className="w-3.5 h-3.5" /> Diajukan
-                        </span>
-                        {(donation.status === "ACCEPTED" || donation.status === "DELIVERED") ? (
-                          <span className="flex items-center gap-0.5 text-emerald-600">
-                            <CheckCircle className="w-3.5 h-3.5" /> Diterima Hub
-                          </span>
+                        {donation.status === "REJECTED" ? (
+                          <>
+                            <span className="flex items-center gap-0.5 text-emerald-600">
+                              <CheckCircle className="w-3.5 h-3.5" /> Diajukan
+                            </span>
+                            <span className="flex items-center gap-0.5 text-rose-500">
+                              <XCircle className="w-3.5 h-3.5" /> Ditolak
+                            </span>
+                          </>
                         ) : (
-                          <span className="flex items-center gap-0.5 text-slate-300">
-                            <Clock className="w-3.5 h-3.5" /> Diterima Hub
-                          </span>
-                        )}
-                        {donation.status === "DELIVERED" ? (
-                          <span className="flex items-center gap-0.5 text-emerald-600">
-                            <CheckCircle className="w-3.5 h-3.5" /> Disalurkan
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-0.5 text-slate-300">
-                            <Clock className="w-3.5 h-3.5" /> Disalurkan
-                          </span>
+                          <>
+                            <span className="flex items-center gap-0.5 text-emerald-600">
+                              <CheckCircle className="w-3.5 h-3.5" /> Diajukan
+                            </span>
+                            {donation.status === "DELIVERY" || donation.status === "ACCEPTED" ? (
+                              <span className="flex items-center gap-0.5 text-emerald-600">
+                                <CheckCircle className="w-3.5 h-3.5" /> Dalam Perjalanan
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-0.5 text-slate-300">
+                                <Clock className="w-3.5 h-3.5" /> Dalam Perjalanan
+                              </span>
+                            )}
+                            {donation.status === "ACCEPTED" ? (
+                              <span className="flex items-center gap-0.5 text-emerald-600">
+                                <CheckCircle className="w-3.5 h-3.5" /> Diterima Gudang
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-0.5 text-slate-300">
+                                <Clock className="w-3.5 h-3.5" /> Diterima Gudang
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

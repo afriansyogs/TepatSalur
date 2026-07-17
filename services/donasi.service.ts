@@ -2,9 +2,9 @@ import { DonasiFormInput, DonasiRecord, DonasiInsertPayload, DonasiResponse, Don
 import { createClient } from "@/lib/supabase/client";
 
 export class DonasiService {
-  /**
-   * Submit donation details to production API
-   */
+  
+
+
   async submitProductionDonation(data: DonasiInsertPayload): Promise<DonasiResponse> {
     const response = await fetch("/api/donatur/donasi", {
       method: "POST",
@@ -22,9 +22,9 @@ export class DonasiService {
     return resData.data;
   }
 
-  /**
-   * Fetch active inventory locations for client-side closest warehouse calculations
-   */
+  
+
+
   async getActiveInventoryLocations() {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -40,9 +40,9 @@ export class DonasiService {
     return data || [];
   }
 
-  /**
-   * Fetch donation history for logged-in Donatur
-   */
+  
+
+
   async getDonaturDonationHistory(): Promise<DonationHistoryRecord[]> {
     const supabase = createClient();
 
@@ -100,16 +100,16 @@ export class DonasiService {
     }));
   }
 
-  /**
-   * Submit donation details (Mocking API call with delay)
-   */
+  
+
+
   async submitDonation(data: DonasiFormInput): Promise<{ success: boolean; transactionId: string }> {
     return new Promise((resolve) => {
       setTimeout(() => {
         const randomId = Math.floor(100000 + Math.random() * 900000);
         const transactionId = `DON-${randomId}`;
 
-        // Save to mock history in localStorage for tracking
+        
         if (typeof window !== "undefined") {
           const rawHistory = localStorage.getItem("donasi_history");
           const history: DonasiRecord[] = rawHistory ? JSON.parse(rawHistory) : [];
@@ -132,16 +132,16 @@ export class DonasiService {
     });
   }
 
-  /**
-   * Get donation history for logged-in user
-   */
+  
+
+
   async getDonationHistory(contactOrName: string): Promise<DonasiRecord[]> {
     if (typeof window === "undefined") return [];
 
     const rawHistory = localStorage.getItem("donasi_history");
     const history: DonasiRecord[] = rawHistory ? JSON.parse(rawHistory) : [];
 
-    // Filter history based on user
+    
     return history.filter(
       (item) =>
         item.namaDonatur.toLowerCase() === contactOrName.toLowerCase() ||

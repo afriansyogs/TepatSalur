@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     const { inventoryLocationId, poskoId, items } = parsed.data;
 
-    // Verify relawan has active INVENTORY assignment for this location
+    
     const { data: assignment } = await supabase
       .from("relawan_assignments")
       .select("id")
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     if (!assignment) return NextResponse.json({ success: false, error: "Akses ditolak" }, { status: 403 });
 
-    // Atomic: INSERT distribusi + distribusi_items + UPDATE qty_booked via RPC
+    
     const { data, error } = await supabase.rpc("accept_distribusi", {
       p_inventory_location_id: inventoryLocationId,
       p_posko_id: poskoId,

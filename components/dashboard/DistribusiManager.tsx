@@ -113,7 +113,7 @@ export function DistribusiManager() {
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-8">
 
-      {/* Gudang header */}
+      {}
       <div>
         <div className="flex items-center gap-2 mb-1">
           <Warehouse className="w-5 h-5 text-blue-500" />
@@ -122,7 +122,7 @@ export function DistribusiManager() {
         {data?.gudang.alamat && <p className="text-sm text-slate-500 ml-7">{data.gudang.alamat}</p>}
       </div>
 
-      {/* Stok gudang */}
+      {}
       <section>
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Stok Gudang</p>
         {data?.stok.length === 0 ? (
@@ -148,7 +148,7 @@ export function DistribusiManager() {
         )}
       </section>
 
-      {/* Posko list */}
+      {}
       <section>
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -209,7 +209,7 @@ export function DistribusiManager() {
         )}
       </section>
 
-      {/* AI section */}
+      {}
       <section>
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
