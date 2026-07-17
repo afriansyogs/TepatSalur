@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, LogOut, ShieldCheck, LayoutDashboard, Heart } from "lucide-react";
+import { ChevronDown, LogOut, ShieldCheck, LayoutDashboard, Heart, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -175,6 +175,7 @@ function ProfileDropdown({
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -256,7 +257,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
           {/* <Link
             href="/dashboard/relawan"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
@@ -283,7 +284,127 @@ export function Navbar() {
             </>
           )}
         </div>
+
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex md:hidden p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-full transition-colors"
+          aria-label="Toggle menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm md:hidden flex justify-end animate-in fade-in duration-200">
+          <div className="w-full max-w-xs bg-white h-full p-6 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-250">
+            <div>
+              <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+                <span className="text-xl font-bold text-blue-600">TepatSalur</span>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 -mr-2 text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <nav className="mt-8 flex flex-col gap-4">
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "text-base font-bold py-2 transition-colors",
+                    pathname === "/" ? "text-blue-600" : "text-slate-600"
+                  )}
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/maps"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "text-base font-bold py-2 transition-colors",
+                    pathname === "/maps" ? "text-blue-600" : "text-slate-600"
+                  )}
+                >
+                  Maps
+                </Link>
+                <Link
+                  href="/#how"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-base font-bold py-2 text-slate-600"
+                >
+                  Cara Kerja
+                </Link>
+              </nav>
+            </div>
+
+            <div className="border-t border-slate-100 pt-6 flex flex-col gap-4">
+              {user ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 px-2 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-blue-100 overflow-hidden flex-shrink-0">
+                      <img
+                        src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(user.name)}&backgroundColor=e0f2fe`}
+                        alt="Avatar"
+                        className="w-full h-full object-cover scale-110"
+                      />
+                    </div>
+                    <div className="flex flex-col truncate">
+                      <span className="text-slate-800 text-[14px] font-black leading-tight tracking-wide truncate">
+                        {user.name}
+                      </span>
+                      <span className="text-blue-600 text-[10px] font-black tracking-wider uppercase mt-0.5">
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
+                  <Link
+                    href={ROLE_DASHBOARD[user.role.toUpperCase()] || "/dashboard/relawan"}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
+                  >
+                    {user.role.toUpperCase() === "DONATUR" ? "Halaman Donasi" : "Dashboard"}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-center border border-slate-200 hover:bg-rose-50 text-rose-600 font-bold py-3 rounded-xl transition-colors"
+                  >
+                    Keluar
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-colors"
+                  >
+                    Masuk
+                  </Link>
+                  <div className="text-slate-400 text-[11px] font-black uppercase tracking-wider text-center py-1">
+                    Daftar Sebagai
+                  </div>
+                  {registerRoles.map((role) => (
+                    <Link
+                      key={role.href}
+                      href={role.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="w-full text-center border border-slate-200 hover:bg-blue-50 hover:text-blue-600 text-slate-700 font-bold py-3 rounded-xl transition-colors"
+                    >
+                      {role.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -23,17 +23,6 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-white text-[13px] font-bold mb-5 tracking-wide uppercase">Navigasi</h4>
-            <div className="flex flex-col gap-3">
-              {["Beranda", "Cara Kerja", "Peta Posko", "Tentang"].map((item) => (
-                <Link key={item} href="#" className="text-[13.5px] text-slate-500 hover:text-slate-200 transition-colors">
-                  {item}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div>
             <h4 className="text-white text-[13px] font-bold mb-5 tracking-wide uppercase">Untuk Anda</h4>
             <div className="flex flex-col gap-3">
               {["Login Donatur", "Login Relawan", "Daftarkan Posko", "Register"].map((item) => (
@@ -44,7 +33,7 @@ export function Footer() {
             </div>
           </div>
 
-\          <div>
+          <div>
             <h4 className="text-white text-[13px] font-bold mb-5 tracking-wide uppercase">Bantuan</h4>
             <div className="flex flex-col gap-3">
               {["FAQ", "Hubungi Kami", "Laporkan Masalah"].map((item) => (
