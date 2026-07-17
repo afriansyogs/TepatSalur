@@ -4,6 +4,9 @@ export interface StatsResponse {
   totalPengungsi: number;
   totalPoskoMerah: number;
   totalRelawanAktif: number;
+  totalDonasiPending: number;
+  totalDonasiDelivery: number;
+  totalInventoryItems: number;
 }
 
 export interface MapKebutuhanItem {

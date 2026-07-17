@@ -15,7 +15,7 @@ type DonationHistoryItem = {
   alamatGudang: string | null;
   alamatPickup: string;
   tanggalDonasi: string;
-  status: "SUBMITTED" | "ACCEPTED" | "DELIVERED" | "UNKNOWN";
+  status: "PENDING" | "DELIVERY" | "ACCEPTED" | "REJECTED" | "UNKNOWN";
   rawDate: string;
 };
 
@@ -55,9 +55,10 @@ const groupDonations = (records: DonationHistoryRecord[]): DonationHistoryItem[]
 
       let statusType: DonationHistoryItem["status"] = "UNKNOWN";
       const statusStr = record.status.toUpperCase();
-      if (statusStr === "SUBMITTED") statusType = "SUBMITTED";
-      else if (statusStr === "ACCEPTED" || statusStr === "APPROVED") statusType = "ACCEPTED";
-      else if (statusStr === "DELIVERED" || statusStr === "COMPLETED") statusType = "DELIVERED";
+      if (statusStr === "PENDING") statusType = "PENDING";
+      else if (statusStr === "DELIVERY") statusType = "DELIVERY";
+      else if (statusStr === "ACCEPTED") statusType = "ACCEPTED";
+      else if (statusStr === "REJECTED") statusType = "REJECTED";
 
       groups[key] = {
         id: `DON-${record.id.substring(0, 8).toUpperCase()}`,
@@ -85,7 +86,7 @@ const groupDonations = (records: DonationHistoryRecord[]): DonationHistoryItem[]
 export function DonorTracker() {
   const [donations, setDonations] = useState<DonationHistoryItem[]>([]);
   const [filteredDonations, setFilteredDonations] = useState<DonationHistoryItem[]>([]);
-  const [activeFilter, setActiveFilter] = useState<"ALL" | "SUBMITTED" | "ACCEPTED" | "DELIVERED">("ALL");
+  const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "DELIVERY" | "ACCEPTED" | "REJECTED">("ALL");
   const [loading, setLoading] = useState(true);
 
   // Stats calculation
@@ -199,9 +200,10 @@ export function DonorTracker() {
           <div className="flex gap-2 border-b border-slate-200 pb-3 overflow-x-auto">
             {[
               { id: "ALL", label: "Semua Donasi" },
-              { id: "SUBMITTED", label: "Menunggu Hub" },
+              { id: "PENDING", label: "Menunggu Konfirmasi" },
+              { id: "DELIVERY", label: "Dalam Perjalanan" },
               { id: "ACCEPTED", label: "Diterima Gudang" },
-              { id: "DELIVERED", label: "Selesai Disalurkan" }
+              { id: "REJECTED", label: "Ditolak" }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -234,11 +236,15 @@ export function DonorTracker() {
                   <div
                     className={cn(
                       "absolute top-0 bottom-0 left-0 w-1.5",
-                      donation.status === "SUBMITTED"
+                      donation.status === "PENDING"
                         ? "bg-amber-500"
+                        : donation.status === "DELIVERY"
+                        ? "bg-blue-400"
                         : donation.status === "ACCEPTED"
-                        ? "bg-blue-500"
-                        : "bg-emerald-500"
+                        ? "bg-emerald-500"
+                        : donation.status === "REJECTED"
+                        ? "bg-rose-500"
+                        : "bg-slate-300"
                     )}
                   />
 
@@ -251,18 +257,26 @@ export function DonorTracker() {
                       <span
                         className={cn(
                           "text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border",
-                          donation.status === "SUBMITTED"
+                          donation.status === "PENDING"
                             ? "bg-amber-50 text-amber-600 border-amber-200"
-                            : donation.status === "ACCEPTED"
+                            : donation.status === "DELIVERY"
                             ? "bg-blue-50 text-blue-600 border-blue-200"
-                            : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                            : donation.status === "ACCEPTED"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                            : donation.status === "REJECTED"
+                            ? "bg-rose-50 text-rose-600 border-rose-200"
+                            : "bg-slate-50 text-slate-500 border-slate-200"
                         )}
                       >
-                        {donation.status === "SUBMITTED"
+                        {donation.status === "PENDING"
                           ? "Menunggu Konfirmasi"
+                          : donation.status === "DELIVERY"
+                          ? "Dalam Perjalanan"
                           : donation.status === "ACCEPTED"
-                          ? "Diterima Hub"
-                          : "Selesai Disalurkan"}
+                          ? "Diterima Gudang"
+                          : donation.status === "REJECTED"
+                          ? "Ditolak"
+                          : "Tidak Diketahui"}
                       </span>
                     </div>
 
@@ -325,22 +339,26 @@ export function DonorTracker() {
                         <span className="flex items-center gap-0.5 text-emerald-600">
                           <CheckCircle className="w-3.5 h-3.5" /> Diajukan
                         </span>
-                        {(donation.status === "ACCEPTED" || donation.status === "DELIVERED") ? (
+                        {(donation.status === "DELIVERY" || donation.status === "ACCEPTED") ? (
                           <span className="flex items-center gap-0.5 text-emerald-600">
-                            <CheckCircle className="w-3.5 h-3.5" /> Diterima Hub
+                            <CheckCircle className="w-3.5 h-3.5" /> Dalam Perjalanan
                           </span>
                         ) : (
                           <span className="flex items-center gap-0.5 text-slate-300">
-                            <Clock className="w-3.5 h-3.5" /> Diterima Hub
+                            <Clock className="w-3.5 h-3.5" /> Dalam Perjalanan
                           </span>
                         )}
-                        {donation.status === "DELIVERED" ? (
+                        {donation.status === "ACCEPTED" ? (
                           <span className="flex items-center gap-0.5 text-emerald-600">
-                            <CheckCircle className="w-3.5 h-3.5" /> Disalurkan
+                            <CheckCircle className="w-3.5 h-3.5" /> Diterima Gudang
+                          </span>
+                        ) : donation.status === "REJECTED" ? (
+                          <span className="flex items-center gap-0.5 text-rose-500">
+                            <Clock className="w-3.5 h-3.5" /> Ditolak
                           </span>
                         ) : (
                           <span className="flex items-center gap-0.5 text-slate-300">
-                            <Clock className="w-3.5 h-3.5" /> Disalurkan
+                            <Clock className="w-3.5 h-3.5" /> Diterima Gudang
                           </span>
                         )}
                       </div>
