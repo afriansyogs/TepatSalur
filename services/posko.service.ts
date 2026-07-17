@@ -68,7 +68,7 @@ export const poskoService = {
   },
 
   async getMockPoskoList(): Promise<PoskoSummary[]> {
-    // Simulasi delay jaringan
+    
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     return [

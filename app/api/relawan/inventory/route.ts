@@ -7,7 +7,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-    // Get relawan's active inventory assignment
+    
     const { data: assignment } = await supabase
       .from("relawan_assignments")
       .select("id, inventory_location_id, inventory_locations(id, name, alamat)")
@@ -24,7 +24,7 @@ export async function GET() {
     const inventoryLocationId = assignment.inventory_location_id;
     const location = assignment.inventory_locations as any;
 
-    // Fetch stok gudang
+    
     const { data: stokRaw } = await supabase
       .from("inventory_items")
       .select("id, item_name, category, qty_available, qty_booked")
@@ -40,7 +40,7 @@ export async function GET() {
       qtyFree: s.qty_available - s.qty_booked,
     }));
 
-    // Fetch all posko with unfulfilled needs
+    
     const { data: poskoRaw } = await supabase
       .from("posko")
       .select(`

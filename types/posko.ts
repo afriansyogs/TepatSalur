@@ -7,7 +7,7 @@ export interface AiTriase {
 }
 
 export interface Demografi {
-  totalPengungsi: number; // This can now be a derived sum or kept as total
+  totalPengungsi: number; 
   dewasa?: number;
   anakAnak?: number;
   lansia: number;
@@ -48,7 +48,7 @@ export interface PoskoData {
   kedatangan: Kedatangan[];
 }
 
-/** Lightweight summary used on the list page */
+
 export interface PoskoSummary {
   id: string;
   namaPosko: string;
@@ -56,12 +56,12 @@ export interface PoskoSummary {
   kecamatan: string;
   triase: AiTriase;
   totalPengungsi: number;
-  kebutuhanKritis: string[]; // top 2 items still KURANG
+  kebutuhanKritis: string[]; 
   relawanAktif: number;
-  mapX?: number; // percentage coordinate on SVG map (0-100)
-  mapY?: number; // percentage coordinate on SVG map (0-100)
-  imageUrl?: string; // image preview url
-  lat?: number; // Real GPS Latitude
-  lng?: number; // Real GPS Longitude
-  jenis?: "bencana" | "relawan"; // Untuk membedakan di peta
+  mapX?: number; 
+  mapY?: number; 
+  imageUrl?: string; 
+  lat?: number; 
+  lng?: number; 
+  jenis?: "bencana" | "relawan"; 
 }

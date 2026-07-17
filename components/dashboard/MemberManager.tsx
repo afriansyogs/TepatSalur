@@ -116,7 +116,7 @@ export function MemberManager() {
     const { member, selectedRole, selectedLocationId } = roleModal;
     if (!member || !selectedRole) return;
     
-    // Validate selection
+    
     if (selectedRole === "POSKO" && !selectedLocationId) {
       return alert("Pilih posko tujuan");
     }
@@ -134,7 +134,7 @@ export function MemberManager() {
         inventoryLocationId: selectedRole === "INVENTORY" ? selectedLocationId || undefined : undefined,
       });
       
-      await fetchData(); // Refresh to get the accurate assignment IDs and data
+      await fetchData(); 
     } catch (err) {
       console.error(err);
       alert("Gagal mengubah penugasan member");
@@ -177,7 +177,7 @@ export function MemberManager() {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -206,7 +206,7 @@ export function MemberManager() {
         </div>
       </div>
 
-      {/* Member Table (Desktop) */}
+      {}
       <div className="hidden md:block bg-white border border-slate-200 rounded-3xl shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -287,7 +287,7 @@ export function MemberManager() {
       </div>
       </div>
 
-      {/* Member Cards (Mobile) */}
+      {}
       <div className="md:hidden grid grid-cols-1 gap-4">
         {filtered.map((member) => {
           const currentRole = member.assignment?.assignmentType || "UNASSIGNED";
@@ -365,7 +365,7 @@ export function MemberManager() {
         </div>
       )}
 
-      {/* Role Assignment Modal */}
+      {}
       {roleModal.isOpen && roleModal.member && (
         <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">

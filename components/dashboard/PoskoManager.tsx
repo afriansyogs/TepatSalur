@@ -47,13 +47,13 @@ export function PoskoManager() {
 
   const [kebForm, setKebForm] = useState<KebutuhanItem[]>([]);
   
-  // Modal states
+  
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editNeedItem, setEditNeedItem] = useState<KebutuhanItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Form states
+  
   const [demoForm, setDemoForm] = useState({ 
     jumlah_dewasa: 0, jumlah_anak: 0, jumlah_lansia: 0, 
     jumlah_ibu_hamil: 0, jumlah_disabilitas: 0, catatan_medis_darurat: "" 
@@ -260,16 +260,16 @@ export function PoskoManager() {
       <div className="flex-1 overflow-auto p-6 bg-slate-50 border-x border-b border-slate-100 rounded-b-3xl">
         <div className="max-w-5xl mx-auto space-y-8">
           
-          {/* Demografi Section (View Mode) */}
+          {}
           <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 opacity-50"></div>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-600" /> Profil Pengungsi
               </h3>
-              {/* <Button onClick={() => setIsDemoModalOpen(true)} variant="outline" size="sm" className="h-9 px-4 rounded-xl border-slate-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-bold">
-                <Edit3 className="w-4 h-4 mr-2" /> Edit Profil
-              </Button> */}
+              {
+
+}
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -306,7 +306,7 @@ export function PoskoManager() {
             )}
           </section>
 
-          {/* Kebutuhan Section (View Mode with modern cards) */}
+          {}
           <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
@@ -378,7 +378,7 @@ export function PoskoManager() {
         </div>
       </div>
 
-      {/* MODAL: EDIT DEMOGRAFI */}
+      {}
       <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
         <DialogContent className="max-w-2xl bg-white border-slate-100 p-0 overflow-hidden rounded-3xl">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50">
@@ -423,7 +423,7 @@ export function PoskoManager() {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL: ADD KEBUTUHAN */}
+      {}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="max-w-md bg-white border-slate-100 p-0 overflow-hidden rounded-3xl">
           <div className="p-5 border-b border-slate-100 bg-slate-50/50">
@@ -485,7 +485,7 @@ export function PoskoManager() {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL: EDIT KEBUTUHAN */}
+      {}
       <Dialog open={!!editNeedItem} onOpenChange={(open) => !open && setEditNeedItem(null)}>
         <DialogContent className="max-w-md bg-white border-slate-100 p-0 overflow-hidden rounded-3xl">
           <div className="p-5 border-b border-slate-100 bg-slate-50/50">

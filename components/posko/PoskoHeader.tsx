@@ -69,7 +69,7 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
   const [tick, setTick] = useState(0);
   const prevStatus = useRef(triase.status);
 
-  // re-render timeAgo every 30s
+  
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => clearInterval(id);
@@ -84,13 +84,13 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
     <>
       <Navbar />
       <section className="relative overflow-hidden bg-slate-950 text-white pt-28 pb-10 border-b border-slate-900 shadow-xl">
-        {/* Background patterns */}
+        {}
         <div className={`absolute inset-0 bg-gradient-to-r ${cfg.gradient} opacity-50 z-0 pointer-events-none`} />
         <div className="absolute top-0 right-0 w-[500px] h-[300px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-4xl mx-auto px-4 relative z-10">
 
-        {/* Navigation & Back Action */}
+        {}
         <div className="flex items-center gap-3 mb-6">
           <Link
             href="/posko"
@@ -106,10 +106,10 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
           </div>
         </div>
 
-        {/* Hero split layout */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
 
-          {/* Posko details */}
+          {}
           <div className="md:col-span-8 space-y-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-bold text-blue-400">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
@@ -124,7 +124,7 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
             </p>
           </div>
 
-          {/* AI Score HUD Box */}
+          {}
           <div className="md:col-span-4 w-full">
             <div
               className={`
@@ -134,7 +134,7 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
                 ${flash ? "scale-102" : "scale-100"}
               `}
             >
-              {/* Header inside HUD */}
+              {}
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Evaluasi Triase AI
@@ -145,7 +145,7 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
                 </span>
               </div>
 
-              {/* Huge score indicator */}
+              {}
               <div className="flex items-baseline gap-2">
                 <span className={`text-4xl font-black font-heading tracking-tight ${cfg.text}`}>
                   {triase.skor}
@@ -153,13 +153,13 @@ export function PoskoHeader({ namaPosko, alamat, triase }: Props) {
                 <span className="text-xs text-slate-400 font-bold uppercase">/ 100 Skor Urgensi</span>
               </div>
 
-              {/* Status explanation */}
+              {}
               <p className="text-[10px] text-slate-400 leading-normal flex items-start gap-1.5">
                 <StatusIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-slate-500" />
                 {cfg.desc}
               </p>
 
-              {/* Timestamp info */}
+              {}
               <div className="border-t border-slate-800 pt-2 flex items-center gap-1 text-[9px] text-slate-500">
                 <Clock className="w-3 h-3 text-slate-600" />
                 <span>Diperbarui {timeAgo(triase.updatedAt)}</span>

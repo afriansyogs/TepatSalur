@@ -62,14 +62,14 @@ export function InventoryManager() {
     try {
       const donasiData = await inventoryService.getDonasiMasuk();
       setDonasi(donasiData);
-    } catch { /* silent */ }
+    } catch {  }
   }, []);
 
   const refreshDashboard = useCallback(async () => {
     try {
       const dashData = await inventoryService.getDashboard();
       setDashboard(dashData);
-    } catch { /* silent */ }
+    } catch {  }
   }, []);
 
   const handleAccept = useCallback(async (id: string) => {
@@ -173,7 +173,7 @@ export function InventoryManager() {
     <div className="p-6 h-full flex flex-col">
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
           <Warehouse className="w-6 h-6 text-blue-600" />
@@ -204,7 +204,7 @@ export function InventoryManager() {
         </div>
       )}
 
-      {/* Stats Cards */}
+      {}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
@@ -226,7 +226,7 @@ export function InventoryManager() {
         </div>
       )}
 
-      {/* Tabs */}
+      {}
       <div className="flex gap-1 border-b border-slate-200 mb-6">
         {TABS.map((t) => (
           <button
@@ -255,7 +255,7 @@ export function InventoryManager() {
         ))}
       </div>
 
-      {/* Tab: Donasi Masuk */}
+      {}
       {tab === "masuk" && (
         <div className="flex-1 space-y-4 overflow-y-auto">
           {loading && <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-blue-500 animate-spin" /></div>}
@@ -278,7 +278,7 @@ export function InventoryManager() {
         </div>
       )}
 
-      {/* Tab: Dalam Perjalanan */}
+      {}
       {tab === "delivery" && (
         <div className="flex-1 space-y-4 overflow-y-auto">
           {loading && <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-blue-500 animate-spin" /></div>}
@@ -301,7 +301,7 @@ export function InventoryManager() {
         </div>
       )}
 
-      {/* Tab: Stok Gudang */}
+      {}
       {tab === "stok" && (
         <div className="flex-1 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">

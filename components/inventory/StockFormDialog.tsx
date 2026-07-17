@@ -17,7 +17,7 @@ const CATEGORIES = ["MAKANAN", "PAKAIAN", "OBAT", "LAINNYA"] as const;
 const stockFormSchema = z.object({
   itemName: z.string().min(1, "Nama barang wajib diisi"),
   category: z.enum(CATEGORIES),
-  qtyAvailable: z.number({ invalid_type_error: "Jumlah harus diisi" }).int("Jumlah harus bilangan bulat").min(1, "Minimal 1"),
+  qtyAvailable: z.number().int("Jumlah harus bilangan bulat").min(1, "Minimal 1"),
 });
 
 type StockFormValues = z.infer<typeof stockFormSchema>;
@@ -63,7 +63,7 @@ export function StockFormDialog({ open, onOpenChange, onSubmit, editItem }: Stoc
       onOpenChange(false);
       reset();
     } catch {
-      // error handled by parent
+      
     } finally {
       setLoading(false);
     }

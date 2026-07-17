@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Dasbor Posko — TepatSalur",
 };
 
-// Mock data — replace with Supabase query in production
+
 const MOCK_POSKO: Record<string, PoskoData> = {
   "1": {
     id: "1",

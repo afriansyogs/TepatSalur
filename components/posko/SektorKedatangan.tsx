@@ -42,7 +42,7 @@ export function SektorKedatangan({ initialKedatangan }: Props) {
 
   return (
     <section id="kedatangan" className="px-4 pt-6 pb-8">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-2 mb-4">
         <div className="w-1 h-6 rounded-full bg-emerald-500" />
         <div>
@@ -63,7 +63,7 @@ export function SektorKedatangan({ initialKedatangan }: Props) {
       )}
 
       <div className="flex flex-col gap-3">
-        {/* Pending */}
+        {}
         {pending.map((k) => {
           const cfg = statusLabel[k.statusKedatangan];
           return (
@@ -73,7 +73,7 @@ export function SektorKedatangan({ initialKedatangan }: Props) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {/* Avatar */}
+                  {}
                   <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 font-black text-[14px] flex-shrink-0">
                     {k.namaRelawan.charAt(0)}
                   </div>
@@ -88,7 +88,7 @@ export function SektorKedatangan({ initialKedatangan }: Props) {
                 </span>
               </div>
 
-              {/* Cargo info */}
+              {}
               <div className="bg-slate-50 rounded-xl px-3 py-2.5 flex items-center gap-2">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white border border-slate-100"><Package className="w-4 h-4 text-slate-500" /></div>
                 <div>
@@ -99,7 +99,7 @@ export function SektorKedatangan({ initialKedatangan }: Props) {
                 </div>
               </div>
 
-              {/* Confirm button */}
+              {}
               {k.statusKedatangan !== "DIKONFIRMASI" && (
                 <button
                   onClick={() => confirm(k.id)}
@@ -112,7 +112,7 @@ export function SektorKedatangan({ initialKedatangan }: Props) {
           );
         })}
 
-        {/* Confirmed (collapsed/dimmed) */}
+        {}
         {confirmed.length > 0 && (
           <div className="mt-2">
             <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest mb-2 px-1">

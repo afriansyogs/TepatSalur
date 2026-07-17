@@ -21,7 +21,7 @@ import {
 import { Map, MapMarker, MarkerContent, MarkerTooltip, MapControls, MapPopup } from "@/components/ui/map";
 import { cn } from "@/lib/utils";
 
-/* ── Status Theme Configuration ── */
+
 const statusTheme: Record<
   TriaseStatus,
   {
@@ -98,7 +98,7 @@ export function PoskoListView({ poskoList }: Props) {
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
   const [isMapMaximized, setIsMapMaximized] = useState(false);
 
-  // Filtering & sorting logic
+  
   const filtered = useMemo(() => {
     return poskoList
       .filter(
@@ -126,13 +126,13 @@ export function PoskoListView({ poskoList }: Props) {
 
   return (
     <div className="min-h-screen bg-[#fafbff] text-slate-900 flex flex-col antialiased">
-      {/* Global Navbar */}
+      {}
       <Navbar />
 
-      {/* Main Panel */}
+      {}
       <div className="flex-1 max-w-[1340px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 flex flex-col gap-8">
 
-        {/* Open, Spacious and Fluid Header Section */}
+        {}
         <div className="relative py-4 md:py-6 z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-slate-200/60 pb-8">
           <div className="space-y-3.5 max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3.5 py-1.5 rounded-full border border-blue-100 text-xs font-bold w-fit">
@@ -151,7 +151,7 @@ export function PoskoListView({ poskoList }: Props) {
             </p>
           </div>
 
-          {/* Minimalist Floating Stats */}
+          {}
           <div className="flex flex-wrap gap-6 items-center flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-sm">
@@ -198,7 +198,7 @@ export function PoskoListView({ poskoList }: Props) {
           </div>
         </div>
 
-        {/* Mobile Toggle Switch */}
+        {}
         <div className="flex lg:hidden bg-slate-200/60 p-1.5 rounded-2xl self-center border border-slate-300/30 shadow-inner">
           <button
             onClick={() => setMobileView("list")}
@@ -224,17 +224,17 @@ export function PoskoListView({ poskoList }: Props) {
           </button>
         </div>
 
-        {/* Primary Page Layout Grid - Dynamic based on maximized map */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 
-          {/* LEFT SECTION: Search, Filters, and List cards */}
+          {}
           <div
             className={`flex flex-col gap-6 transition-all duration-500 ${
               isMapMaximized ? "lg:col-span-3" : "lg:col-span-6"
             } ${mobileView === "list" ? "flex" : "hidden lg:flex"}`}
           >
 
-            {/* Search & Badges Filter block */}
+            {}
             <div className="bg-white p-5 rounded-[2rem] border border-slate-100/80 shadow-[0_10px_30px_rgba(15,23,42,0.015)] flex flex-col gap-4">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -247,7 +247,7 @@ export function PoskoListView({ poskoList }: Props) {
                 />
               </div>
 
-              {/* Advanced Filter Badges */}
+              {}
               <div className={`flex gap-2 overflow-x-auto pb-1 scrollbar-none ${isMapMaximized ? "flex-wrap" : ""}`}>
                 {FILTERS.map((f) => {
                   const count = f.key === "semua"
@@ -283,7 +283,7 @@ export function PoskoListView({ poskoList }: Props) {
               </div>
             </div>
 
-            {/* Cards Container */}
+            {}
             <div className={`space-y-4 overflow-y-auto pr-1 scrollbar-thin ${
               isMapMaximized ? "max-h-[500px]" : "max-h-[700px]"
             }`}>
@@ -312,7 +312,7 @@ export function PoskoListView({ poskoList }: Props) {
                         }
                       `}
                     >
-                      {/* Image Preview Block */}
+                      {}
                       <div className={`relative w-full ${
                         isMapMaximized ? "h-[100px] w-full" : "sm:w-[150px] md:w-[170px]"
                       } min-h-[100px] bg-slate-100 flex-shrink-0 overflow-hidden`}>
@@ -328,7 +328,7 @@ export function PoskoListView({ poskoList }: Props) {
                             <MapPin className="w-8 h-8" />
                           </div>
                         )}
-                        {/* Status Label absolute overlay */}
+                        {}
                         <div className="absolute top-3 left-3 z-10">
                           <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full border shadow-sm backdrop-blur-md bg-white/95 uppercase tracking-wider ${theme.badgeBg} ${theme.border}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${theme.accentLine} ${
@@ -339,10 +339,10 @@ export function PoskoListView({ poskoList }: Props) {
                         </div>
                       </div>
 
-                      {/* Main card information block */}
+                      {}
                       <div className="flex-1 p-4 md:p-5 flex flex-col justify-between gap-3 min-w-0">
                         <div>
-                          {/* Top Row: Name and Score */}
+                          {}
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <span className="text-[9px] font-black text-blue-600 tracking-wider uppercase truncate block">{posko.kecamatan}</span>
@@ -362,7 +362,7 @@ export function PoskoListView({ poskoList }: Props) {
                             </div>
                           </div>
 
-                          {/* Stat Grid with Asymmetric Border */}
+                          {}
                           <div className="grid grid-cols-3 gap-1.5 mt-3.5 py-1.5 px-2 bg-slate-50 border border-slate-100 rounded-xl text-center">
                             <div>
                               <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Jiwa</span>
@@ -385,7 +385,7 @@ export function PoskoListView({ poskoList }: Props) {
                           </div>
                         </div>
 
-                        {/* Critical Needs list & Action */}
+                        {}
                         {!isMapMaximized && (
                           <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 flex-wrap">
                             {posko.kebutuhanKritis.length > 0 ? (
@@ -425,7 +425,7 @@ export function PoskoListView({ poskoList }: Props) {
             </div>
           </div>
 
-          {/* RIGHT SECTION: Real Interactive MapLibre Map Component (Expandable) */}
+          {}
           <div
             className={cn(
               "flex flex-col h-[520px] lg:h-[760px] transition-all duration-500 relative",
@@ -435,7 +435,7 @@ export function PoskoListView({ poskoList }: Props) {
           >
             <div className="bg-slate-100 border border-slate-200/80 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-900/5 h-full flex flex-col relative">
 
-              {/* Map Titlebar Layer (Floating Absolute at Top) */}
+              {}
               <div className="absolute top-4 left-4 right-4 z-20 bg-white/90 backdrop-blur-md border border-slate-200/80 px-4 py-3 rounded-2xl flex items-center justify-between shadow-lg">
                 <div className="flex items-center gap-2">
                   <div className="bg-blue-50 text-blue-600 p-2 rounded-xl border border-blue-100">
@@ -447,7 +447,7 @@ export function PoskoListView({ poskoList }: Props) {
                   </div>
                 </div>
 
-                {/* Header Controls */}
+                {}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setIsMapMaximized(!isMapMaximized)}
@@ -474,18 +474,18 @@ export function PoskoListView({ poskoList }: Props) {
                 </div>
               </div>
 
-              {/* Real Map Component Canvas */}
+              {}
               <div className="flex-1 w-full h-full relative overflow-hidden bg-slate-50">
                 <Map
                   theme="light"
                   viewport={{
-                    center: [107.138, -6.65], // Center di antara Jabodetabek & Bandung Barat (Bogor, Tangerang, Cimahi, Depok)
+                    center: [107.138, -6.65], 
                     zoom: 8.5,
                   }}
                 >
                   <MapControls position="bottom-right" showZoom showLocate showCompass />
 
-                  {/* Marker mapping for each posko */}
+                  {}
                   {filtered.map((posko) => {
                     const theme = statusTheme[posko.triase.status];
                     const poskoLat = posko.lat || -6.4807;
@@ -499,10 +499,10 @@ export function PoskoListView({ poskoList }: Props) {
                         latitude={poskoLat}
                         onClick={() => setSelectedPoskoId(posko.id === selectedPoskoId ? null : posko.id)}
                       >
-                        {/* Custom Map Pin Content */}
+                        {}
                         <MarkerContent>
                           <div className="relative group/pin cursor-pointer flex items-center justify-center">
-                            {/* Pulse animation for kritis or active pin */}
+                            {}
                             {(posko.triase.status === "KRITIS" || isSelected) && (
                               <div
                                 className="absolute rounded-full animate-map-ping opacity-60"
@@ -514,7 +514,7 @@ export function PoskoListView({ poskoList }: Props) {
                               />
                             )}
 
-                            {/* Main Pin Circle */}
+                            {}
                             <div
                               className={cn(
                                 "rounded-full flex items-center justify-center border-2 border-white transition-all duration-300",
@@ -534,7 +534,7 @@ export function PoskoListView({ poskoList }: Props) {
                           </div>
                         </MarkerContent>
 
-                        {/* Hover Tooltip label */}
+                        {}
                         <MarkerTooltip className="bg-slate-900 border border-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-md pointer-events-none">
                           {posko.namaPosko} ({posko.triase.skor})
                         </MarkerTooltip>
@@ -542,7 +542,7 @@ export function PoskoListView({ poskoList }: Props) {
                     );
                   })}
 
-                  {/* Render popup directly beside/on top of the selected marker coordinates */}
+                  {}
                   {selectedPosko && (
                     <MapPopup
                       longitude={selectedPosko.lng || 106.8529}
@@ -551,7 +551,7 @@ export function PoskoListView({ poskoList }: Props) {
                       closeButton={true}
                       className="bg-white border border-slate-100 shadow-[0_15px_40px_rgba(15,23,42,0.18)] p-0 w-[270px] text-slate-900 cursor-default rounded-3xl"
                     >
-                      {/* Popover Card Content */}
+                      {}
                       <div className="p-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-between items-start gap-2 mb-2">
                           <div>
@@ -562,7 +562,7 @@ export function PoskoListView({ poskoList }: Props) {
                           </div>
                         </div>
 
-                        {/* Image inside popup */}
+                        {}
                         {selectedPosko.imageUrl && (
                           <div className="w-full h-[90px] bg-slate-50 rounded-xl overflow-hidden mb-2.5 relative">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -571,7 +571,7 @@ export function PoskoListView({ poskoList }: Props) {
                               alt={selectedPosko.namaPosko}
                               className="w-full h-full object-cover"
                             />
-                            {/* Status Overlay */}
+                            {}
                             <span className="absolute top-2 left-2 inline-flex items-center text-[8px] font-black bg-white/95 px-2 py-0.5 rounded-full border shadow-sm tracking-wide">
                               Skor AI: {selectedPosko.triase.skor}
                             </span>
@@ -613,7 +613,7 @@ export function PoskoListView({ poskoList }: Props) {
                   )}
                 </Map>
 
-                {/* Floating Map Legend (Bottom-Left overlay on top of map canvas) */}
+                {}
                 <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 z-10 shadow-lg max-w-[190px]">
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2.5">
                     KLASIFIKASI TRIASE AI

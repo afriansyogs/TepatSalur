@@ -2,9 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { Map, MapMarker, MarkerContent, MarkerTooltip, MapControls } from "@/components/ui/map";
-import { mapService, MapMarkerData } from "@/services/map.service";
+import { mapService } from "@/services/map.service";
 import { ShieldCheck, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface MapMarkerData {
+  id: string;
+  location: [number, number];
+  type: "relawan" | "posko";
+  urgency: "kritis" | "siaga" | "aman";
+  name: string;
+  description: string;
+  refugeesCount: number;
+  needs: string[];
+}
 
 export function InteractiveMap() {
   const [markers, setMarkers] = useState<MapMarkerData[]>([]);
@@ -13,8 +24,40 @@ export function InteractiveMap() {
   useEffect(() => {
     async function loadData() {
       try {
-        const data = await mapService.getMapMarkers();
-        setMarkers(data);
+        const response = await mapService.getMapData();
+        const mapped: MapMarkerData[] = [];
+
+        response.inventory.forEach((inv) => {
+          mapped.push({
+            id: inv.id,
+            location: [inv.longitude, inv.latitude],
+            type: "relawan",
+            urgency: "aman",
+            name: inv.name,
+            description: inv.alamat || "",
+            refugeesCount: 0,
+            needs: [],
+          });
+        });
+
+        response.posko.forEach((p) => {
+          let urgency: "kritis" | "siaga" | "aman" = "aman";
+          if (p.aiStatus === "MERAH") urgency = "kritis";
+          else if (p.aiStatus === "KUNING") urgency = "siaga";
+
+          mapped.push({
+            id: p.id,
+            location: [p.longitude, p.latitude],
+            type: "posko",
+            urgency,
+            name: p.name,
+            description: p.alamat || "",
+            refugeesCount: p.jumlahPengungsi || 0,
+            needs: (p.kebutuhan || []).map((k) => `${k.itemName} (${k.qtyNeeded - k.qtyFulfilled})`),
+          });
+        });
+
+        setMarkers(mapped);
       } finally {
         setIsLoading(false);
       }
@@ -27,7 +70,7 @@ export function InteractiveMap() {
       <Map
         theme="light"
         viewport={{
-          center: [107.6191, -6.9175], // Pusat di Jawa Barat
+          center: [107.6191, -6.9175], 
           zoom: 8,
         }}
         loading={isLoading}

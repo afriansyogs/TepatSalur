@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Ambil data Posko
+    
     const { data: rawPoskos, error: poskoError } = await supabase
       .from("posko")
       .select(`

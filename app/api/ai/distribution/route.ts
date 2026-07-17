@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.GEMINI_API_KEY_DISTRIBUTION;
     if (!apiKey) return NextResponse.json({ success: false, error: "Konfigurasi AI tidak tersedia" }, { status: 500 });
 
-    // Derive inventory location from user's active assignment — no body needed
+    
     const { data: assignment } = await supabase
       .from("relawan_assignments")
       .select("id, inventory_location_id")
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 
     const inventoryLocationId = assignment.inventory_location_id;
 
-    // Fetch available stock
+    
     const { data: stokRaw } = await supabase
       .from("inventory_items")
       .select("id, item_name, category, qty_available, qty_booked")
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Tidak ada stok tersedia di gudang" }, { status: 400 });
     }
 
-    // Fetch ALL posko with open needs — include demografi + catatan medis for AI weighting
+    
     const { data: poskoRaw } = await supabase
       .from("posko")
       .select(`

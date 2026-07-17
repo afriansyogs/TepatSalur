@@ -258,13 +258,13 @@ export function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          {/* <Link
-            href="/dashboard/relawan"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
-          >
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            Dashboard
-          </Link> */}
+          {
+
+
+
+
+
+}
 
           {user ? (
             <ProfileDropdown user={user} onLogout={handleLogout} />
@@ -294,7 +294,7 @@ export function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm md:hidden flex justify-end animate-in fade-in duration-200">
           <div className="w-full max-w-xs bg-white h-full p-6 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-250">
