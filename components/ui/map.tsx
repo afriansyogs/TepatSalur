@@ -17,7 +17,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { X, Minus, Plus, Locate, Maximize, Loader2 } from "lucide-react";
+import { X, Minus, Plus, Locate, Maximize, Loader2, AlertTriangle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -235,6 +235,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   const [mapInstance, setMapInstance] = useState<MapLibreGL.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
+  const [isSupported, setIsSupported] = useState<boolean | null>(null);
   const currentStyleRef = useRef<MapStyleOption | null>(null);
   const styleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const internalUpdateRef = useRef(false);
@@ -270,9 +271,29 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     }
   }, []);
 
+  // Check WebGL support on client-side mount
+  useEffect(() => {
+    // Some bundlers/versions of maplibre-gl export supported check differently or might have it on MapLibreGL itself,
+    // let's use a robust WebGL context check as a fallback if MapLibreGL.supported is undefined.
+    try {
+      if (typeof MapLibreGL.supported === "function") {
+        setIsSupported(MapLibreGL.supported());
+      } else {
+        const canvas = document.createElement("canvas");
+        const supportsWebGL = !!(
+          window.WebGLRenderingContext &&
+          (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+        );
+        setIsSupported(supportsWebGL);
+      }
+    } catch {
+      setIsSupported(false);
+    }
+  }, []);
+
   // Initialize the map
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || isSupported !== true) return;
 
     const initialStyle =
       resolvedTheme === "dark" ? mapStyles.dark : mapStyles.light;
@@ -325,7 +346,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
       setMapInstance(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSupported]);
 
   // Sync controlled viewport to map
   useEffect(() => {
@@ -392,9 +413,20 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
         ref={containerRef}
         className={cn("relative h-full w-full", className)}
       >
-        {(!isLoaded || loading) && <DefaultLoader />}
-        {/* SSR-safe: children render only when map is loaded on client */}
-        {mapInstance && children}
+        {isSupported === false ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-destructive/5 dark:bg-destructive/10 border border-dashed border-destructive/20 rounded-2xl">
+            <AlertTriangle className="size-8 text-destructive mb-2" />
+            <p className="font-semibold text-foreground text-sm">
+              WebGL is not supported or disabled in your browser. Map cannot be loaded.
+            </p>
+          </div>
+        ) : (
+          <>
+            {(!isLoaded || loading) && <DefaultLoader />}
+            {/* SSR-safe: children render only when map is loaded on client */}
+            {mapInstance && children}
+          </>
+        )}
       </div>
     </MapContext.Provider>
   );

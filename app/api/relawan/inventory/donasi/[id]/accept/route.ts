@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -33,7 +34,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, error: "Hanya donasi berstatus PENDING yang bisa di-accept" }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      : supabase;
+
+    const { error } = await supabaseAdmin
       .from("donasi")
       .update({ status: "DELIVERY", updated_at: new Date().toISOString() })
       .eq("id", id);

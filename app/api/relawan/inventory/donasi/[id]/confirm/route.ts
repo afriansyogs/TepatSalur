@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -33,9 +34,13 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, error: "Hanya donasi berstatus DELIVERY yang bisa dikonfirmasi" }, { status: 400 });
     }
 
+    const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY)
+      : supabase;
+
     // Update status + set accepted_by + INSERT inventory_item
     const [updateRes, insertRes] = await Promise.all([
-      supabase
+      supabaseAdmin
         .from("donasi")
         .update({
           status: "ACCEPTED",
@@ -43,7 +48,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           updated_at: new Date().toISOString(),
         })
         .eq("id", id),
-      supabase
+      supabaseAdmin
         .from("inventory_items")
         .insert({
           inventory_location_id: assignment.inventory_location_id,
