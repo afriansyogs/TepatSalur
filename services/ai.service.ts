@@ -1,5 +1,5 @@
-import { VoiceParseResult, TriageResult } from "@/types/ai";
-import { PoskoVoiceInputValues } from "@/schemas/ai";
+import { VoiceParseResult, TriageResult, DistribusiRecommendationResponse } from "@/types/ai";
+import { PoskoVoiceInputValues, AcceptDistribusiValues } from "@/schemas/ai";
 
 export const aiService = {
   async parseVoiceInput(
@@ -60,6 +60,39 @@ export const aiService = {
       return data;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Gagal memprediksi urgensi";
+      return { success: false, error: message };
+    }
+  },
+
+  async getDistributionRecommendation(): Promise<{ success: boolean; data?: DistribusiRecommendationResponse; error?: string }> {
+    try {
+      const res = await fetch("/api/ai/distribution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data: { success: boolean; data?: DistribusiRecommendationResponse; error?: string } = await res.json();
+      return data;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal mendapatkan rekomendasi distribusi";
+      return { success: false, error: message };
+    }
+  },
+
+  async acceptDistribusi(
+    values: AcceptDistribusiValues
+  ): Promise<{ success: boolean; data?: { distribusiId: string }; error?: string }> {
+    try {
+      const res = await fetch("/api/distribusi/accept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      const data: { success: boolean; data?: { distribusiId: string }; error?: string } = await res.json();
+      return data;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal menerima distribusi";
       return { success: false, error: message };
     }
   },

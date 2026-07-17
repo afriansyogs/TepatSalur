@@ -55,3 +55,17 @@ export type VoiceParseResultValues = z.infer<typeof voiceParseResultSchema>;
 export type PoskoVoiceInputValues = z.infer<typeof poskoVoiceInputSchema>;
 export type PoskoUpdateBodyValues = z.infer<typeof poskoUpdateBodySchema>;
 export type TriageResultValues = z.infer<typeof triageResultSchema>;
+
+export const acceptDistribusiItemSchema = z.object({
+  inventoryItemId: z.string().uuid(),
+  kebutuhanId: z.string().uuid(),
+  qtyAllocated: z.number().int().min(1),
+});
+
+export const acceptDistribusiSchema = z.object({
+  inventoryLocationId: z.string().uuid(),
+  poskoId: z.string().uuid(),
+  items: z.array(acceptDistribusiItemSchema).min(1),
+});
+
+export type AcceptDistribusiValues = z.infer<typeof acceptDistribusiSchema>;

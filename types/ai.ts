@@ -25,6 +25,28 @@ export interface TriageResult {
   reasoning: string;
 }
 
+export interface DistribusiRecommendationItem {
+  inventoryItemId: string;
+  kebutuhanId: string;
+  itemName: string;
+  category: KebutuhanKategori;
+  qtyAllocated: number;
+}
+
+export interface DistribusiRecommendation {
+  poskoId: string;
+  poskoName: string;
+  aiStatus: UrgencyStatus | null;
+  aiUrgencyScore: number | null;
+  reasoning: string;
+  items: DistribusiRecommendationItem[];
+}
+
+export interface DistribusiRecommendationResponse {
+  inventoryLocationId: string;
+  recommendations: DistribusiRecommendation[];
+}
+
 export interface AssignedPosko {
   id: string;
   communityId: string;
