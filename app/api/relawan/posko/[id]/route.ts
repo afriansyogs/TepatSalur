@@ -1,5 +1,45 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { triageResultSchema } from "@/schemas/ai";
+
+function buildTriagePrompt(data: {
+  jumlahPengungsi: number;
+  jumlahAnak: number;
+  jumlahLansia: number;
+  jumlahDisabilitas: number;
+  jumlahIbuHamil: number;
+  catatanMedisDarurat: string;
+  kebutuhan: { kategori: string; namaBarang: string; qtyNeeded: number }[];
+}): string {
+  const kebutuhanList =
+    data.kebutuhan.length > 0
+      ? data.kebutuhan.map((k) => `${k.namaBarang} (${k.kategori}, qty: ${k.qtyNeeded})`).join(", ")
+      : "tidak ada";
+
+  return `Kamu adalah sistem triase bencana. Berdasarkan data posko berikut, tentukan tingkat urgensi dan berikan skor 0-100.
+
+Data Posko:
+- Jumlah pengungsi: ${data.jumlahPengungsi}
+- Anak-anak: ${data.jumlahAnak}
+- Lansia: ${data.jumlahLansia}
+- Disabilitas: ${data.jumlahDisabilitas}
+- Ibu hamil: ${data.jumlahIbuHamil}
+- Catatan medis darurat: "${data.catatanMedisDarurat || "tidak ada"}"
+- Kebutuhan mendesak: ${kebutuhanList}
+
+Kembalikan JSON valid tanpa markdown atau kode blok:
+{
+  "status": "MERAH" | "KUNING" | "HIJAU",
+  "score": number (0-100),
+  "reasoning": "string (1-2 kalimat alasan dalam bahasa Indonesia)"
+}
+
+Panduan klasifikasi:
+- MERAH (skor 70-100): kondisi kritis, banyak kelompok rentan, ada kebutuhan medis darurat
+- KUNING (skor 40-69): kondisi sedang, perlu perhatian segera
+- HIJAU (skor 0-39): kondisi relatif stabil, kebutuhan dasar terpenuhi`;
+}
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -26,7 +66,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const resolvedParams = await params;
     const poskoId = resolvedParams.id;
 
-    // Optional: verify this relawan is assigned to this posko
     const { data: assignment, error: assignmentError } = await supabase
       .from("relawan_assignments")
       .select("id")
@@ -53,19 +92,56 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       kebutuhan
     } = body;
 
-    // AI Urgency Score calculation (Mock for now, could be integrated with LLM)
-    // Basic rules based on requirements
     let aiUrgencyScore = 0;
     let aiStatus = "HIJAU";
 
-    if ((jumlahLansia || 0) + (jumlahAnak || 0) + (jumlahBalita || 0) + (jumlahIbuHamil || 0) + (jumlahDisabilitas || 0) > 0) {
-       aiUrgencyScore += 30;
-       aiStatus = "KUNING";
-    }
+    const apiKey = process.env.GEMINI_API_KEY_URGENT;
+    if (apiKey) {
+      try {
+        const prompt = buildTriagePrompt({
+          jumlahPengungsi: jumlahPengungsi || 0,
+          jumlahAnak: (jumlahAnak || 0) + (jumlahBalita || 0),
+          jumlahLansia: jumlahLansia || 0,
+          jumlahDisabilitas: jumlahDisabilitas || 0,
+          jumlahIbuHamil: jumlahIbuHamil || 0,
+          catatanMedisDarurat: catatanMedisDarurat || "",
+          kebutuhan: (kebutuhan || []).map((k: any) => ({
+            kategori: k.kategori || "",
+            namaBarang: k.namaBarang || k.itemName || "",
+            qtyNeeded: Number(k.qtyNeeded) || 0,
+          })),
+        });
 
-    if (catatanMedisDarurat && catatanMedisDarurat.length > 5) {
-       aiUrgencyScore += 40;
-       aiStatus = "MERAH";
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
+
+        const result = await model.generateContent(prompt);
+        const rawText = result.response.text().trim();
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        const parsedJson = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+        const triageResult = triageResultSchema.parse(parsedJson);
+
+        aiUrgencyScore = triageResult.score;
+        aiStatus = triageResult.status;
+      } catch (e) {
+        if ((jumlahLansia || 0) + (jumlahAnak || 0) + (jumlahBalita || 0) + (jumlahIbuHamil || 0) + (jumlahDisabilitas || 0) > 0) {
+          aiUrgencyScore += 30;
+          aiStatus = "KUNING";
+        }
+        if (catatanMedisDarurat && catatanMedisDarurat.length > 5) {
+          aiUrgencyScore += 40;
+          aiStatus = "MERAH";
+        }
+      }
+    } else {
+      if ((jumlahLansia || 0) + (jumlahAnak || 0) + (jumlahBalita || 0) + (jumlahIbuHamil || 0) + (jumlahDisabilitas || 0) > 0) {
+        aiUrgencyScore += 30;
+        aiStatus = "KUNING";
+      }
+      if (catatanMedisDarurat && catatanMedisDarurat.length > 5) {
+        aiUrgencyScore += 40;
+        aiStatus = "MERAH";
+      }
     }
 
     const { error: updateError } = await supabase

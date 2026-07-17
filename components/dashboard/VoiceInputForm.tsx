@@ -574,7 +574,7 @@ export function VoiceInputForm() {
               <><CheckCircle2 className="w-5 h-5" /> Tersimpan</>
             )}
             {(saveStatus === "idle" || saveStatus === "error") && (
-              <><Save className="w-5 h-5" /> Simpan ke Database</>
+              <><Save className="w-5 h-5" /> Submit</>
             )}
           </button>
         </div>
