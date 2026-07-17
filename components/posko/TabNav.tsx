@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Package, Truck } from "lucide-react";
+import { Users, Package, Truck, History } from "lucide-react";
 
 const TABS = [
   { id: "demografi", label: "Pengungsi", icon: Users },
   { id: "logistik", label: "Logistik", icon: Package },
   { id: "kedatangan", label: "Kedatangan", icon: Truck },
+  { id: "riwayat-donasi", label: "Riwayat", icon: History },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

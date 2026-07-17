@@ -240,7 +240,7 @@ export function RegisterForm() {
 
         <p className="mt-6 text-center text-sm text-ink-500">
           Sudah punya akun?{" "}
-          <Link href={`/login?role=${roleKey}`} className="font-semibold text-blue-600 hover:text-blue-700">
+          <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
             Masuk
           </Link>
         </p>
